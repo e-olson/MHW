@@ -1,0 +1,16 @@
+## Run concatFiles.py
+#PBS -l nodes=1:ppn=8
+#PBS -l mem=2GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N concatFiles
+#PBS -o concatFiles_out.txt
+#PBS -e concatFiles_err.txt
+
+
+source /home/reo000/myconda
+conda activate py39dc2
+
+cd /home/reo000/MHW/MHW_OISST
+python concatFiles.py 8
+echo 'end'
