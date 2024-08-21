@@ -1,0 +1,13 @@
+## Run MHW_Forecasts_new.py
+#PBS -l nodes=1:ppn=8
+#PBS -l mem=32GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+
+echo 'lead:'
+echo $il
+source /home/reo000/myconda
+conda activate py39dc2
+cd /home/reo000/MHW/MHW_Forecasts_New
+python MHW_Forecasts_New.py $il
+echo 'done'
