@@ -104,7 +104,7 @@ if __name__=="__main__":
     il=int(sys.argv[3]) # lead, 0-10
     if modopt in modict.keys():
         mods=modict[modopt]
-    elif mod in nl.keys():
+    elif modopt in nl.keys():
         mods=[modopt,]
     else:
         raise Exception(f'nonexistent modopt value:{modopt}')
