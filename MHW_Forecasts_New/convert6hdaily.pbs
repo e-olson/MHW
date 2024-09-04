@@ -1,0 +1,14 @@
+## Run convert6hdaily.py
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=6GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+
+
+echo $t0
+echo $t1
+source /home/reo000/myconda
+conda activate py39dc2
+cd /home/reo000/MHW/MHW_Forecasts_New
+python convert6hdaily.py $t0 $t1
+echo 'done'

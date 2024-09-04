@@ -1,0 +1,16 @@
+## Run ensembleMerge.py
+#PBS -l nodes=1:ppn=8
+#PBS -l mem=2GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N ensMerge
+#PBS -o ensMerge_out.txt
+#PBS -e ensMerge_err.txt
+
+
+source /home/reo000/myconda
+conda activate py39dc2
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python ensembleMerge.py 8
+echo 'end'
