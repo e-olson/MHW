@@ -32,7 +32,7 @@ if __name__=="__main__":
     dd=1
     hh=0
     for yyyy in range(years[0],years[1]):
-        for mm in range(1,13):
+        for mm in (9,):#range(11,13):
             if yyyy==2024 and mm>6:
                 pass
             else:

@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=5
+#PBS -l mem=30GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N anom
+#PBS -o anom_out.txt
+#PBS -e anom_err.txt
+
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py calcAnom_CanESM5 1993 2023
+echo 'end'

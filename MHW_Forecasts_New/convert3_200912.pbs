@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=12GB
+#PBS -l walltime=04:00:00
+#PBS -S /bin/bash
+#PBS -N convert200912
+#PBS -o convert200912_out.txt
+#PBS -e convert200912_err.txt
+
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python convert6hdaily3.py 2009 12
+echo 'end'
