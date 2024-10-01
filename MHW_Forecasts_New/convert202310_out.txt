@@ -1,3 +1,0 @@
-/space/hall5/sitestore/eccc/crd/ccrn/users/reo000/data/predictions/cansipsv3_daily/CanESM5/joined/cwao_CanESM5.1p1bc-v20240611_hindcast_S2023100100_ocean_1d_surface_tso.nc
-done: 2023 10
-end

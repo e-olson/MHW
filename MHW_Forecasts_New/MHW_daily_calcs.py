@@ -40,6 +40,21 @@ def lsqfit_md_detr(data):
     ydetr=np.reshape(ydetr,dshape)
     return ydetr
 
+def lsqfit_md_detrPooled(data): # remove single trend for all ensemble members (per model)
+    # reshape so ensemble members are concatenated along first axis
+    # linearly detrend along axis 0
+    # assume no NaN values; this is for model results
+    data=np.asarray(data)
+    dshape=data.shape
+    N=dshape[0]
+    R=dshape[1]
+    X=np.concatenate([np.ones((R*N,1)),(np.arange(0,N).reshape((N,1))*np.ones((N,R))).reshape((R*N,-1))],1)
+    newdata = np.reshape(data,(R*N, np.prod(dshape, axis=0) // (R*N))).copy() # // is floor division; ensure copy
+    b=np.linalg.lstsq(X,newdata,rcond=None)[0] # res=np.sum((np.dot(X,b)-Y)**2)
+    ydetr=newdata-np.dot(X,b)
+    ydetr=np.reshape(ydetr,dshape)
+    return ydetr
+
 def fconvert_CanESM(yyyy,mm,dd,hh):
     fin=fnameCanESMjoined(mdirC5,yyyy,mm,dd,hh)
     fout=fnameCanESMdaily(mdirC5,yyyy,mm,dd,hh)
@@ -132,9 +147,11 @@ def anom_bylead(climyrs,nleads):
 def anom_bylead_detr(climyrs,ilead,jj):
     fin=fnameCanESMAnomByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
     fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
+    mkdirs(fout)
     ff=xr.open_dataset(fin,decode_times=False)
-    out=lsqfit_md_detr(ff.sst_an)
-    out.to_netcdf(fout,mode='w')
+    out=lsqfit_md_detrPooled(ff.sst_an)
+    daout=ff.sst_an.copy(deep=True,data=out)
+    daout.to_netcdf(fout,mode='w')
     ff.close()
     return
 
