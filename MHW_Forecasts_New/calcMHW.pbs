@@ -2,9 +2,9 @@
 #PBS -l mem=6GB
 #PBS -l walltime=02:00:00
 #PBS -S /bin/bash
-#PBS -N anombylead
-#PBS -o detr_out^array_index^.txt
-#PBS -e detr_err^array_index^.txt
+#PBS -N MHWdaily
+#PBS -o MHW_out^array_index^.txt
+#PBS -e MHW_err^array_index^.txt
 #PBS -J 0-42
 
 source /home/reo000/myconda
