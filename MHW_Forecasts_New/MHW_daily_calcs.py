@@ -184,7 +184,7 @@ def anom_bylead_detr(climyrs,ilead,jj):
     ff.close()
     return
 
-def mhw_calc(climyrs,ilead,jj,qtile,detr=True):
+def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
     if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
         ffunanom=fnameCanESMAnomDetrByLead # or fnameCanESMAnomDetrByLeadIndiv if switch method
         ffunqtile=fnameCanESMAnomDetrQtile
