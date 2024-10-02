@@ -217,13 +217,14 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
     qt2=np.expand_dims(ql,[0,2])
     del ql
     MHW=np.ma.masked_where(np.isnan(fc),np.where(fc>qt2,1,0))
-    del fc
+    del fc; del qt2;
     MHWstack=np.reshape(MHW,(sh[0]*sh[1],sh[2],sh[3],sh[4]))
     del MHW
     MHWstack=MHWstack[:ff.sst_an.shape[0],...] # remove appended nans
     dsMHW=xr.Dataset(data_vars={'isMHW':(['reftime','r','lat','lon'],MHWstack),
                                 'MHW_prob':(['reftime','lat','lon'],np.mean(MHWstack,axis=1))},
                     coords={'reftime':ff.reftime,'r':ff.r,'lat':ff.lat,'lon':ff.lon,'leadtime':ff.leadtime})
+    del MHWstack
     fMHWout=ffunMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
     mkdirs(fMHWout)
     dsMHW.to_netcdf(fMHWout,mode='w')
