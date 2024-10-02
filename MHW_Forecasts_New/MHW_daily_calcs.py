@@ -194,6 +194,7 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
         ffunqtile=fnameCanESMAnomQtile
         ffunMHW=fnameCanESMMHW
     ff=xr.open_dataset(ffunanom(workdir, climyrs[0], climyrs[-1], ilead, jj),decode_times=False)
+    fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
     sh=fc.shape
     def getind(i0):
         if i0>=1 and i0<=10:
