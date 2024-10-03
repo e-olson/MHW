@@ -35,16 +35,16 @@ fnameCanESMAnomDetrByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: 
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomDetrQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
        f"{mdir}/byLeadDetr/qtileDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qtile).replace('.','_')}_ocean_1d_surface_tso.nc"
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
        f"{mdir}/byLead/qtileByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qtile).replace('.','_')}_ocean_1d_surface_tso.nc"
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
 fnameCanESMMHWDetr=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
        f"{mdir}/byLeadMHWDetr/MHWDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qtile).replace('.','_')}_ocean_1d_surface_tso.nc"
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
 fnameCanESMMHW=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
        f"{mdir}/byLeadMHW/MHWByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qtile).replace('.','_')}_ocean_1d_surface_tso.nc"
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
 def mkdirs(fsave):
     saveloc=os.path.dirname(fsave)
     if not os.path.exists(saveloc):
@@ -206,7 +206,7 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
     ql=np.nan*np.ones((12,sh[-2],sh[-1]))
     for ii in range(0,12):
         pool=fc.sel(month=getind(ii)).values.reshape((sh[0]*3*sh[2],sh[3],sh[4]))
-        ql[ii,...]=np.quantile(pool,0.9,axis=0)
+        ql[ii,...]=np.nanquantile(pool,0.9,axis=0)
     fqout=ffunqtile(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
     dsqt=xr.Dataset(data_vars={'qt':(['month','lat','lon'],ql,{'long_name':f"{100*qtile}th percentile value"}),},
                    coords={'month':np.arange(0,12),
