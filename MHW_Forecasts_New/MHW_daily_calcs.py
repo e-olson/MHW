@@ -87,7 +87,7 @@ def lsqfit_md_detrPooled(data): # remove single trend for all ensemble members (
     ydetr=np.reshape(ydetr,dshape)
     return ydetr
 
-def lsqfit_md_detrPooled_saveb(data,climyrs,ilead,istartlat): # remove single trend for all ensemble members (per model)
+def lsqfit_md_detrPooled_saveb(data,climyrs,ilead,istartlat,lats,lons): # remove single trend for all ensemble members (per model)
     # reshape so ensemble members are concatenated along first axis
     # linearly detrend along axis 0
     # assume no NaN values; this is for model results
@@ -101,10 +101,10 @@ def lsqfit_md_detrPooled_saveb(data,climyrs,ilead,istartlat): # remove single tr
     ydetr=newdata-np.dot(X,b)
     b=np.reshape(b,tuple([2]+list(dshape)[2:]))
     fout=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, istartlat)
-    dsb=xr.dataset(data_vars={'fit':(['b','lat','lon'],b),},
+    dsb=xr.Dataset(data_vars={'fit':(['b','lat','lon'],b),},
                    coords={'b':np.arange(0,2),
-                           'lat':ff.lat,
-                           'lon':ff.lon})
+                           'lat':lats,
+                           'lon':lons})
     dsb.to_netcdf(fout,mode='w')
     ydetr=np.reshape(ydetr,dshape)
     return ydetr
@@ -203,7 +203,7 @@ def anom_bylead_detr(climyrs,ilead,jj):
     fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
     mkdirs(fout)
     ff=xr.open_dataset(fin,decode_times=False)
-    out=lsqfit_md_detrPooled(ff.sst_an)
+    out=lsqfit_md_detrPooled_saveb(ff.sst_an,climyrs,ilead,jj,ff.lat.values,ff.lon.values)
     #daout=ff.sst_an.copy(deep=True,data=out)
     #daout.to_netcdf(fout,mode='w')
     ff.close()
