@@ -3,6 +3,7 @@ import datetime as dt
 import xarray as xr
 import numpy as np
 from dask.distributed import Client, LocalCluster
+import dask.array as da
 
 # run with two arguments: first year to process and first year not to process
 # should add up to 1993, 2024
@@ -17,6 +18,9 @@ fnameCanESMAnom=lambda mdir, climyfirst,climylast,lfirst, llast, mm: \
        f"L_{lfirst:03}_{llast:03}_ocean_1d_surface_tso.nc"
 fnameCanESMClim=lambda mdir, climyfirst, climylast, mm: \
        f"{mdir}/clim/clim_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"Mon{mm:02}_ocean_1d_surface_tso.nc"
+fnameCanESMClimSmooth=lambda mdir, climyfirst, climylast, mm, method, window: \
+       f"{mdir}/clim/clim_smooth_{method}{window}cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"Mon{mm:02}_ocean_1d_surface_tso.nc"
 #fnameCanESMAnom=lambda mdir, climyfirst, climylast, yyyy, mm: \
 #       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
@@ -109,6 +113,29 @@ def lsqfit_md_detrPooled_saveb(data,climyrs,ilead,istartlat,lats,lons): # remove
     ydetr=np.reshape(ydetr,dshape)
     return ydetr
 
+def _add_dims(arr,tarr):
+    while len(np.shape(arr))<len(np.shape(tarr)):
+        arr=np.expand_dims(arr,-1)
+    return arr
+
+def trismooth(t,vals,L=30):
+    # t is values assoc with 1st dim
+    # smooths over 1st dim
+    # if vector, add dim:
+    dt=t[1]-t[0]
+    alpha=1
+    if len(np.shape(vals))==1:
+        vals=np.expand_dims(vals,axis=1)
+    fil=np.empty(np.shape(vals))
+    for ind, ti in enumerate(t):
+        diff=np.abs(ti-t)
+        Leff=min(L,alpha*(ti-t[0]+1)*dt,alpha*(t[-1]-ti+1)*dt)# do not smooth beginning and end asymmetrically
+        weight=_add_dims(np.maximum(Leff-diff,0),vals)
+        fil[ind,...]=np.divide(np.nansum(weight*vals,0),np.nansum(weight*~np.isnan(vals),0),
+                               out=np.nan*da.array(np.ones(np.shape(vals)[1:])),
+                               where=np.nansum(weight*~np.isnan(vals),0)>0)
+    return fil
+
 def fconvert_CanESM(yyyy,mm,dd,hh):
     fin=fnameCanESMjoined(mdirC5,yyyy,mm,dd,hh)
     fout=fnameCanESMdaily(mdirC5,yyyy,mm,dd,hh)
@@ -137,6 +164,29 @@ def calcClim_CanESM5(climyrs):#,nlead):
             EClim.to_netcdf(fnameclim,mode='w')
             del EClim
             ff.close()
+    return
+
+def smoothClim_CanESM5(climyrs,smoothmethod,window):
+    with LocalCluster(n_workers=6,threads_per_worker=1) as cluster, Client(cluster) as client:
+        flistclim = [fnameCanESMClim(workdir,climyrs[0],climyrs[-1],mm) for mm in range(1,13)]
+        fclim=xr.open_mfdataset(flistclim,combine='nested',concat_dim='month',parallel=True,decode_times=False)
+        SST=fclim.tso.data.rechunk([1,-1,90,120])
+        climS=da.empty_like(SST)
+        if smoothmethod=='tri':
+            smoothfun=trismooth
+        else:
+            raise Exception('method not implemented:',smoothmethod)
+        for ix in range(0,12):
+            climS[ix,...]=da.map_blocks(smoothfun,fclim.leadtime.values/24,SST[ix,...],window,dtype=float)
+        for mm in range(1,13):
+            fout=fnameCanESMClimSmooth(workdir,climyrs[0],climyrs[-1],mm,smoothmethod,window)
+            print(fout)
+            dsout=xr.Dataset(data_vars={'tso':(['leadtime','lat','lon'],climS[mm-1,...])},
+                             coords={'leadtime':fclim.leadtime,
+                                     'lat':fclim.lat,
+                                     'lon':fclim.lon})
+            dsout.to_netcdf(fout,mode='w')
+        fclim.close()
     return
 
 def calcAnom_CanESM5(climyrs):#,nlead):
@@ -279,6 +329,12 @@ if __name__=="__main__":
         climstart=int(sys.argv[2])
         climend=int(sys.argv[3])
         calcClim_CanESM5([climstart,climend])
+    elif funx=='smoothClim_CanESM5':
+        # request 7 cpus
+        windowhalfwid=int(sys.argv[2])
+        climyrs=[1993,2023]
+        smoothmethod='tri'
+        smoothClim_CanESM5(climyrs,smoothmethod,windowhalfwid)
     elif funx=='calcAnom_CanESM5':
         climstart=int(sys.argv[2])
         climend=int(sys.argv[3])
