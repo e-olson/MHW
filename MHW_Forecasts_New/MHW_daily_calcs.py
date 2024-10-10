@@ -34,6 +34,9 @@ fnameCanESMAnomSClim=lambda mdir, climyfirst, climylast, yyyy, mm, meth, win: \
 fnameCanESMAnomByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
        f"{mdir}/byLead/anomByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+fnameCanESMAnomByLeadSClim=lambda mdir, climyfirst, climylast, ilead, istartlat,meth,win: \
+       f"{mdir}/byLead/anomByLead_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomDetrByLeadIndiv=lambda mdir, climyfirst, climylast, ilead, istartlat: \
        f"{mdir}/byLeadDetrIndiv/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
@@ -239,10 +242,13 @@ def calcAnom_CanESM5(climyrs,smoothClim=False,smoothmethod=None,window=1):#,nlea
                     fclim.close()
     return
 
-def anom_bylead(climyrs,nleads):
+def anom_bylead(climyrs,nleads,smoothClim=False,smoothmethod=None,window=1):
     for ilead in nleads:
         for jj in range(0,180,60):
-            flist=[fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],yy,mm) for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
+            if smoothClim:
+                flist=[fnameCanESMAnomSClim(workdir,climyrs[0],climyrs[-1],yy,mm,smoothmethod,window) for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
+            else:
+                flist=[fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],yy,mm) for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
             with LocalCluster(n_workers=ncpu-1,threads_per_worker=1) as cluster, Client(cluster) as client:
                 ff= xr.open_mfdataset(flist,parallel=True,combine='nested',concat_dim='reftime',
                                         preprocess=lambda ff: ff.isel(leadtime=ilead,lat=slice(jj,jj+60)),decode_times=False)
@@ -256,8 +262,12 @@ def anom_bylead(climyrs,nleads):
                                         'r':np.arange(0,ff.sst_an.shape[1]),
                                         'lat':ff.lat,
                                         'lon':ff.lon})
-                fnamout=fnameCanESMAnomByLead(workdir,climyrs[0],climyrs[-1],ilead,jj)
+                if smoothClim:
+                    fnamout=fnameCanESMAnomByLeadSClim(workdir,climyrs[0],climyrs[-1],ilead,jj,smoothmethod,window)
+                else:
+                    fnamout=fnameCanESMAnomByLead(workdir,climyrs[0],climyrs[-1],ilead,jj)
                 mkdirs(fnamout)
+                print(fnamout)
                 fout.to_netcdf(fnamout,mode='w') # encoding={'sst_an': {'chunksizes': [Anom0.shape[0],1,20,360]}}
                 del sst_an2; del fout;
                 ff.close(); del ff;
@@ -362,10 +372,16 @@ if __name__=="__main__":
             calcAnom_CanESM5(climyrs)
     elif funx=='anom_bylead':
         climstart=1993
+        smoothclim=int(sys.argv[2])
+        windowhalfwid=10
+        smoothmethod='tri'
         climend=2023
         nleads=range(0,215) # calculate for all leads
         startyr=1993
-        anom_bylead([climstart,climend],nleads)
+        if smoothclim==1:
+            anom_bylead([climstart,climend],nleads,True,smoothmethod,windowhalfwid)
+        else:
+            anom_bylead([climstart,climend],nleads)
     elif funx=='anom_bylead_detr':
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
         #nleads=215
