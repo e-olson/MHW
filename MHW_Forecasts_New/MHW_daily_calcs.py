@@ -13,18 +13,24 @@ fnameCanESMjoined=lambda mdir, yyyy, mm, dd, hh: \
        f"{mdir}/joined/cwao_CanESM5.1p1bc-v20240611_hindcast_S{yyyy:04}{mm:02}{dd:02}{hh:02}_ocean_6hr_surface_tso.nc"
 fnameCanESMdaily=lambda mdir, yyyy, mm, dd, hh: \
        f"{mdir}/joined/cwao_CanESM5.1p1bc-v20240611_hindcast_S{yyyy:04}{mm:02}{dd:02}{hh:02}_ocean_1d_surface_tso.nc"
-fnameCanESMAnom=lambda mdir, climyfirst,climylast,lfirst, llast, mm: \
-       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_SMon{mm:02}_"\
-       f"L_{lfirst:03}_{llast:03}_ocean_1d_surface_tso.nc"
 fnameCanESMClim=lambda mdir, climyfirst, climylast, mm: \
        f"{mdir}/clim/clim_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"Mon{mm:02}_ocean_1d_surface_tso.nc"
 fnameCanESMClimSmooth=lambda mdir, climyfirst, climylast, mm, method, window: \
        f"{mdir}/clim/clim_smooth_{method}{window}cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"Mon{mm:02}_ocean_1d_surface_tso.nc"
-#fnameCanESMAnom=lambda mdir, climyfirst, climylast, yyyy, mm: \
-#       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-#       f"SYr{yyyy:04}Mon{mm:02}_ocean_1d_surface_tso.nc"
+#fnameCanESMAnom=lambda mdir, climyfirst,climylast,lfirst, llast, mm: \
+#       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_SMon{mm:02}_"\
+#       f"L_{lfirst:03}_{llast:03}_ocean_1d_surface_tso.nc"
+#fnameCanESMAnomSClim=lambda mdir, climyfirst,climylast,lfirst,llast,mm,meth,win:\
+#       f"{mdir}/anom/anom_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_SMon{mm:02}_"\
+#       f"L_{lfirst:03}_{llast:03}_ocean_1d_surface_tso.nc"
+fnameCanESMAnom=lambda mdir, climyfirst, climylast, yyyy, mm: \
+       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"SYr{yyyy:04}Mon{mm:02}_ocean_1d_surface_tso.nc"
+fnameCanESMAnomSClim=lambda mdir, climyfirst, climylast, yyyy, mm, meth, win: \
+       f"{mdir}/anom/anom_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"SYr{yyyy:04}Mon{mm:02}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
        f"{mdir}/byLead/anomByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
@@ -122,14 +128,14 @@ def trismooth(t,vals,L=30):
     # t is values assoc with 1st dim
     # smooths over 1st dim
     # if vector, add dim:
-    dt=t[1]-t[0]
+    delt=t[1]-t[0]
     alpha=1
     if len(np.shape(vals))==1:
         vals=np.expand_dims(vals,axis=1)
     fil=np.empty(np.shape(vals))
     for ind, ti in enumerate(t):
         diff=np.abs(ti-t)
-        Leff=min(L,alpha*(ti-t[0]+1)*dt,alpha*(t[-1]-ti+1)*dt)# do not smooth beginning and end asymmetrically
+        Leff=min(L,alpha*(ti-t[0]+1)*delt,alpha*(t[-1]-ti+1)*delt)# do not smooth beginning and end asymmetrically
         weight=_add_dims(np.maximum(Leff-diff,0),vals)
         fil[ind,...]=np.divide(np.nansum(weight*vals,0),np.nansum(weight*~np.isnan(vals),0),
                                out=np.nan*da.array(np.ones(np.shape(vals)[1:])),
@@ -189,28 +195,37 @@ def smoothClim_CanESM5(climyrs,smoothmethod,window):
         fclim.close()
     return
 
-def calcAnom_CanESM5(climyrs):#,nlead):
+def calcAnom_CanESM5(climyrs,smoothClim=False,smoothmethod=None,window=1):#,nlead):
     for mm in range(1,13): # month loop
         print(f"Month:{mm} {dt.datetime.now()}",flush=True)
         #for ix in range(0,int(nlead/5)):
-        fnamelast=fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],climyrs[-1],mm)
+        if smoothClim:
+            fnamelast=fnameCanESMAnomSClim(workdir,climyrs[0],climyrs[-1],climyrs[-1],mm,smoothmethod,window)
+        else:
+            fnamelast=fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],climyrs[-1],mm)
         if not os.path.exists(fnamelast): # skip if file at (almost) end already exists
             flist=[fnameCanESMdaily(mdirC5,yyyy,mm,1,0) for yyyy in range(1993,2025) if yyyy<2024 or mm<=6] # stop at Jul 2024
-            fnameclim=fnameCanESMClim(workdir,climyrs[0],climyrs[-1],mm)
+            if smoothClim:
+                fnameclim=fnameCanESMClimSmooth(workdir,climyrs[0],climyrs[-1],mm,smoothmethod,window)
+            else:
+                fnameclim=fnameCanESMClim(workdir,climyrs[0],climyrs[-1],mm)
             with LocalCluster(n_workers=ncpu-1,threads_per_worker=1) as cluster, Client(cluster) as client:
                 with xr.open_mfdataset(flist,parallel=True,combine='nested',concat_dim='reftime',
                                chunks={'reftime':-1,'leadtime':-1,'r':-1,'lat':-1,'lon':-1}) as ff:
-                    if not os.path.exists(fnameclim):
-                        EClim=ff.tso.sel(reftime=slice(np.datetime64(f'{climyrs[0]:04}-01-01'),
-                            np.datetime64(f'{climyrs[-1]:04}-12-31'))).mean(dim='r').mean(dim='reftime')
-                        mkdirs(fnameclim)
-                        EClim.to_netcdf(fnameclim,mode='w')
-                        del EClim
+                    # if not os.path.exists(fnameclim):
+                    #     EClim=ff.tso.sel(reftime=slice(np.datetime64(f'{climyrs[0]:04}-01-01'),
+                    #         np.datetime64(f'{climyrs[-1]:04}-12-31'))).mean(dim='r').mean(dim='reftime')
+                    #     mkdirs(fnameclim)
+                    #     EClim.to_netcdf(fnameclim,mode='w')
+                    #     del EClim
                     fclim=xr.open_dataset(fnameclim)
                     EClim=fclim['tso']
                     for iy in range(1993,2025):
                         if iy<2024 or mm<=6: # stop at Jul 2024
-                            fname=fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],iy,mm)
+                            if smoothClim:
+                                fname=fnameCanESMAnomSClim(workdir,climyrs[0],climyrs[-1],iy,mm,smoothmethod,window)
+                            else:
+                                fname=fnameCanESMAnom(workdir,climyrs[0],climyrs[-1],iy,mm)
                             print(fname,flush=True)
                             if mm==1 and iy==1993: 
                                 mkdirs(fname)
@@ -336,10 +351,15 @@ if __name__=="__main__":
         smoothmethod='tri'
         smoothClim_CanESM5(climyrs,smoothmethod,windowhalfwid)
     elif funx=='calcAnom_CanESM5':
-        climstart=int(sys.argv[2])
-        climend=int(sys.argv[3])
+        climyrs=[1993,2023]
+        smoothclim=int(sys.argv[2])
+        windowhalfwid=10
+        smoothmethod='tri'
         #nlead=215
-        calcAnom_CanESM5([climstart,climend])#,nlead)
+        if smoothclim==1:
+            calcAnom_CanESM5(climyrs,True,smoothmethod,windowhalfwid)#,nlead)
+        else:
+            calcAnom_CanESM5(climyrs)
     elif funx=='anom_bylead':
         climstart=1993
         climend=2023
