@@ -2,14 +2,14 @@
 #PBS -l mem=6GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
-#PBS -N anombylead
-#PBS -o detr_out^array_index^.txt
-#PBS -e detr_err^array_index^.txt
+#PBS -N qtile
+#PBS -o qt^array_index^_out.txt
+#PBS -e qt^array_index^_err.txt
 #PBS -J 0-42
 
 source /home/reo000/myconda
 conda activate py12MHW
 
 cd /home/reo000/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py anom_bylead_detr $PBS_ARRAY_INDEX
+python MHW_daily_calcs.py calc_quantile_detr_A $PBS_ARRAY_INDEX
 echo 'end'

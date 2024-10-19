@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=6GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N smtr
+#PBS -o smoothtr_out^array_index^.txt
+#PBS -e smoothtr_err^array_index^.txt
+#PBS -J 0-2
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py smoothTrend_CanESM5 $PBS_ARRAY_INDEX
+echo 'end'
