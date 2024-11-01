@@ -68,24 +68,25 @@ def subprocrun(cmdlist,maxproc=1,verb=False,prepfun=None):
     pids.wait()
     return
 
-years = [1991, 2020]
+years = [2021,2024] #[1991, 2020]
 basepath='/space/hall5/sitestore/eccc/crd/ccrn/users/reo000/data/obs/NOAA_OISST/'
 savepath='/space/hall5/sitestore/eccc/crd/ccrn/users/reo000/work/MHW/'
 cmdlistcat=[]
 cmdlistavg=[]
 for iy in range(years[0],years[1]+1):
     for im in range(1,13):
-        flist=[basepath+f'oisst-avhrr-v02r01.{iy}{im:02}{id:02}.nc' for id in \
-               itertools.takewhile(lambda x : (dt.datetime(iy,im,1)+dt.timedelta(days=x-1)).month==im, (el for el in range(1,33)))]
-        assert checkFiles(flist) # make sure files exist
-        # build command to join daily files in monthly file
-        foutD=f'{basepath}combined/oisst-avhrr-v02r01.{iy}{im:02}_daily.nc' 
-        cmdcat=f"ncrcat {' '.join(flist)} {foutD}"
-        # build command to calc monthly average file
-        foutM=f'{basepath}combined/oisst-avhrr-v02r01.{iy}{im:02}_monthly.nc' 
-        cmdavg=f"ncra {foutD} {foutM}"
-        cmdlistcat.append(cmdcat)
-        cmdlistavg.append(cmdavg)
+        if iy<2024 | (iy==2024 and im<7): # data provisional/not downloaded from July on
+            flist=[basepath+f'oisst-avhrr-v02r01.{iy}{im:02}{id:02}.nc' for id in \
+                   itertools.takewhile(lambda x : (dt.datetime(iy,im,1)+dt.timedelta(days=x-1)).month==im, (el for el in range(1,33)))]
+            assert checkFiles(flist) # make sure files exist
+            # build command to join daily files in monthly file
+            foutD=f'{basepath}combined/oisst-avhrr-v02r01.{iy}{im:02}_daily.nc' 
+            cmdcat=f"ncrcat {' '.join(flist)} {foutD}"
+            # build command to calc monthly average file
+            foutM=f'{basepath}combined/oisst-avhrr-v02r01.{iy}{im:02}_monthly.nc' 
+            cmdavg=f"ncra {foutD} {foutM}"
+            cmdlistcat.append(cmdcat)
+            cmdlistavg.append(cmdavg)
 
 if __name__=="__main__":
     maxproc=int(sys.argv[1])

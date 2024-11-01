@@ -1,15 +1,15 @@
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=6GB
+#PBS -l mem=12GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
-#PBS -N qtile
-#PBS -o qt^array_index^_out.txt
-#PBS -e qt^array_index^_err.txt
+#PBS -N qtS
+#PBS -o qtS^array_index^_out.txt
+#PBS -e qtS^array_index^_err.txt
 #PBS -J 0-42
 
 source /home/reo000/myconda
 conda activate py12MHW
 
 cd /home/reo000/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py calc_quantile_detr_A $PBS_ARRAY_INDEX
+python MHW_daily_calcs.py calc_quantile_detr_A $PBS_ARRAY_INDEX 1
 echo 'end'

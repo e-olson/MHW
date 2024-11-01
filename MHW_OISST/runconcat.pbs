@@ -1,6 +1,6 @@
 ## Run concatFiles.py
 #PBS -l nodes=1:ppn=8
-#PBS -l mem=2GB
+#PBS -l mem=8GB
 #PBS -l walltime=06:00:00
 #PBS -S /bin/bash
 #PBS -N concatFiles

@@ -14,7 +14,7 @@ osrcdir='/space/hall5/sitestore/eccc/crd/ccrn/users/reo000/data/obs/NOAA_OISST/c
 ylimlistobs=[[1991,2000],[2001,2010],[2011,2020],[2021,2024]]
 method='tri'
 halfwin=10
-qtile=.9
+delt=5
 
 fnameCanESMjoined=lambda mdir, yyyy, mm, dd, hh: \
        f"{mdir}/joined/cwao_CanESM5.1p1bc-v20240611_hindcast_S{yyyy:04}{mm:02}{dd:02}{hh:02}_ocean_6hr_surface_tso.nc"
@@ -45,46 +45,45 @@ fnameCanESMAnomByLeadSClim=lambda mdir, climyfirst, climylast, ilead, istartlat,
        f"{mdir}/byLead/anomByLead_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomDetrByLeadIndiv=lambda mdir, climyfirst, climylast, ilead, istartlat: \
-       f"{mdir}/byLeadDetrIndiv2/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"{mdir}/byLeadDetrIndiv/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-#fnameCanESMAnomDetrByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
-#       f"{mdir}/byLeadDetr/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-#       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-def fnameCanESMDetrFitByLead(mdir, climyfirst, climylast, ilead, istartlat, sourcedesig=''):
-    subdir='byLeadDetrIndiv2' if sourcedesig=='' else 'byLeadDetr'
-    return f"{mdir}/{subdir}/fitDetrByLead{sourcedesig}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+fnameCanESMAnomDetrByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
+       f"{mdir}/byLeadDetr/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+fnameCanESMDetrFitByLead=lambda mdir, climyfirst, climylast, ilead, istartlat, sourcedesig='': \
+       f"{mdir}/byLeadDetr/fitDetrByLead{sourcedesig}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 fnameCanESMDetrFitByLeadS=lambda mdir, climyfirst, climylast, ilead, istartlat, meth, win, sourcedesig='': \
        f"{mdir}/byLeadDetr/fitDetrByLead{sourcedesig}_smoothed{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 def fnameCanESMAnomDetrByLead(mdir, climyfirst, climylast, ilead, istartlat, smoothClim=False,smoothTrend=False,meth=None,win=1): 
-    subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
-    return f"{mdir}/{subdir}/anomDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    return f"{mdir}/byLeadDetr/anomDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 def fnameCanESMAnomDetrQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
-    subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
-    strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
+    strdelt=f'_delt{delt}' if smoothTrend else ''
     qstr='{:.2f}'.format(qt).replace('.','_')
-    return f"{mdir}/{subdir}/qtileDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    if smoothClim:
+        return f"{mdir}/byLeadDetr/qtileDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"L{ilead:03}{strdelt}_j{istartlat:03}_q{qstr}_ocean_1d_surface_tso.nc"
-#fnameCanESMAnomQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
-#       f"{mdir}/byLead/qtileByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-#       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
-def fnameCanESMMHWDetr(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
-    subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
-    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
-    strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
-    strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
-    qstr='{:.2f}'.format(qt).replace('.','_')
-    return f"{mdir}/{subdir}/MHWDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    else:
+        return f"{mdir}/byLeadDetrIndiv/qtileDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"L{ilead:03}{strdelt}_j{istartlat:03}_q{qstr}_ocean_1d_surface_tso.nc"
-#fnameCanESMMHW=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
-#       f"{mdir}/byLeadMHW/MHWByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-#       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
+fnameCanESMAnomQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
+       f"{mdir}/byLead/qtileByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
+fnameCanESMMHWDetr=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
+       f"{mdir}/byLeadMHWDetr/MHWDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
+fnameCanESMMHWDetrSmooth=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
+       f"{mdir}/byLeadMHWDetr/MHWDetrByLeadSmooth_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
+fnameCanESMMHW=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
+       f"{mdir}/byLeadMHW/MHWByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
 fnameOISSTDaily = lambda iy, im:\
        f"{osrcdir}/oisst-avhrr-v02r01.{iy}{im:02}_daily.nc"
 fnameOISSTDailyGrid2 = lambda yrlims: \
@@ -374,7 +373,6 @@ def anom_bylead_detr(climyrs,ilead,jj,smoothedClim=False,smoothedTrend=False,smo
         fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=True,smoothTrend=False,meth=smoothmethod,win=window)
     else: # no smoothing
         fin=fnameCanESMAnomByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
-        fb=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
         fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
     mkdirs(fout)
     ff=xr.open_dataset(fin,decode_times=False)
@@ -400,7 +398,7 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     def leadbounds(l0,lmax,delt):
         i0=min(max(l0-delt,0),lmax-(2*delt+1))
         return i0, i0+2*delt+1
-    flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) \
+    flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,smoothTrend=smoothedClim,meth=smoothmethod,win=window) \
             for il in range(*leadbounds(ilead,215,delt))]
     print(flist)
     ff=xr.open_mfdataset(flist,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
@@ -426,11 +424,13 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     ff.close()
     return
 
-def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
+def MHW_calc_smoothed(climyrs,ilead,jj,qtile,detr=True,smoothmethod=None,window=1,delt=5):
     if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
-        fanom=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) 
-        fqtile=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window)
-        fMHW=fnameCanESMMHWDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window)
+        fanom=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=True,smoothTrend=True,meth=smoothmethod,win=window) 
+        # or fnameCanESMAnomDetrByLeadIndiv if switch method
+        fqtile=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,
+                                   smoothClim=True,smoothTrend=True,meth=smoothmethod,win=window,delt=delt)
+        fMHW=fnameCanESMMHWDetrSmooth(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
     else:
         raise Exception('not implemented yet')
     ff=xr.open_dataset(fanom,decode_times=False)
@@ -453,53 +453,53 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=F
     ff.close(); fq.close(); del ff; del qt2; 
     return
 
-#def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
-#    if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
-#        ffunanom=fnameCanESMAnomDetrByLead # or fnameCanESMAnomDetrByLeadIndiv if switch method
-#        ffunqtile=fnameCanESMAnomDetrQtile
-#        ffunMHW=fnameCanESMMHWDetr
-#    else:
-#        ffunanom=fnameCanESMAnomByLead
-#        ffunqtile=fnameCanESMAnomQtile
-#        ffunMHW=fnameCanESMMHW
-#    ff=xr.open_dataset(ffunanom(workdir, climyrs[0], climyrs[-1], ilead, jj),decode_times=False)
-#    fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
-#    sh=fc.shape
-#    def getind(i0):
-#        if i0>=1 and i0<=10:
-#            return [i0-1,i0,i0+1]
-#        elif i0==0:
-#            return [11,0,1]
-#        elif i0==11:
-#            return [10,11,0]
-#    ql=np.nan*np.ones((12,sh[-2],sh[-1]))
-#    for ii in range(0,12):
-#        pool=fc.sel(month=getind(ii)).values.reshape((sh[0]*3*sh[2],sh[3],sh[4]))
-#        ql[ii,...]=np.nanquantile(pool,0.9,axis=0)
-#    fqout=ffunqtile(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
-#    dsqt=xr.Dataset(data_vars={'qt':(['month','lat','lon'],ql,{'long_name':f"{100*qtile}th percentile value"}),},
-#                   coords={'month':np.arange(0,12),
-#                           'lat':ff.lat,
-#                           'lon':ff.lon})
-#    dsqt.to_netcdf(fqout,mode='w')
-#    del dsqt
-#    qt2=np.expand_dims(ql,[0,2])
-#    del ql
-#    MHW=np.ma.masked_where(np.isnan(fc),np.where(fc>qt2,1,0))
-#    del fc; del qt2;
-#    MHWstack=np.reshape(MHW,(sh[0]*sh[1],sh[2],sh[3],sh[4]))
-#    del MHW
-#    MHWstack=MHWstack[:ff.sst_an.shape[0],...] # remove appended nans
-#    dsMHW=xr.Dataset(data_vars={'isMHW':(['reftime','r','lat','lon'],MHWstack),
-#                                'MHW_prob':(['reftime','lat','lon'],np.mean(MHWstack,axis=1))},
-#                    coords={'reftime':ff.reftime,'r':ff.r,'lat':ff.lat,'lon':ff.lon,'leadtime':ff.leadtime})
-#    del MHWstack
-#    fMHWout=ffunMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
-#    mkdirs(fMHWout)
-#    dsMHW.to_netcdf(fMHWout,mode='w')
-#    del dsMHW;
-#    ff.close(); del ff
-#    return
+def MHW_calc(climyrs,ilead,jj,qtile,detr=True):
+    if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
+        ffunanom=fnameCanESMAnomDetrByLead # or fnameCanESMAnomDetrByLeadIndiv if switch method
+        ffunqtile=fnameCanESMAnomDetrQtile
+        ffunMHW=fnameCanESMMHWDetr
+    else:
+        ffunanom=fnameCanESMAnomByLead
+        ffunqtile=fnameCanESMAnomQtile
+        ffunMHW=fnameCanESMMHW
+    ff=xr.open_dataset(ffunanom(workdir, climyrs[0], climyrs[-1], ilead, jj),decode_times=False)
+    fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
+    sh=fc.shape
+    def getind(i0):
+        if i0>=1 and i0<=10:
+            return [i0-1,i0,i0+1]
+        elif i0==0:
+            return [11,0,1]
+        elif i0==11:
+            return [10,11,0]
+    ql=np.nan*np.ones((12,sh[-2],sh[-1]))
+    for ii in range(0,12):
+        pool=fc.sel(month=getind(ii)).values.reshape((sh[0]*3*sh[2],sh[3],sh[4]))
+        ql[ii,...]=np.nanquantile(pool,0.9,axis=0)
+    fqout=ffunqtile(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
+    dsqt=xr.Dataset(data_vars={'qt':(['month','lat','lon'],ql,{'long_name':f"{100*qtile}th percentile value"}),},
+                   coords={'month':np.arange(0,12),
+                           'lat':ff.lat,
+                           'lon':ff.lon})
+    dsqt.to_netcdf(fqout,mode='w')
+    del dsqt
+    qt2=np.expand_dims(ql,[0,2])
+    del ql
+    MHW=np.ma.masked_where(np.isnan(fc),np.where(fc>qt2,1,0))
+    del fc; del qt2;
+    MHWstack=np.reshape(MHW,(sh[0]*sh[1],sh[2],sh[3],sh[4]))
+    del MHW
+    MHWstack=MHWstack[:ff.sst_an.shape[0],...] # remove appended nans
+    dsMHW=xr.Dataset(data_vars={'isMHW':(['reftime','r','lat','lon'],MHWstack),
+                                'MHW_prob':(['reftime','lat','lon'],np.mean(MHWstack,axis=1))},
+                    coords={'reftime':ff.reftime,'r':ff.r,'lat':ff.lat,'lon':ff.lon,'leadtime':ff.leadtime})
+    del MHWstack
+    fMHWout=ffunMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile)
+    mkdirs(fMHWout)
+    dsMHW.to_netcdf(fMHWout,mode='w')
+    del dsMHW;
+    ff.close(); del ff
+    return
 
 def regrid_daily_OISST(yrlims):
     flistD=[]
@@ -604,52 +604,27 @@ if __name__=="__main__":
                     anom_bylead_detr(climyrs,ilead,jj)
     elif funx=='calc_quantile_detr_A':
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
-        opt=int(sys.argv[3]) # numer referencing option set
-        if opt==0: # no smoothing
-            smoothedClim=False
-            smoothedTrend=False
-            smoothmethod=None
-            window=0
-            delt=0
-        elif opt==1: # all smoothing
-            smoothedClim=True
-            smoothedTrend=True
-            smoothmethod=smoothmethod
-            window=windowhalfwid
-            delt=15
+        qtile=.9
         for ilead in range(ind*5,(ind+1)*5):
             for jj in range(0,180,60):
-                calc_quantile_detr_A(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
-                                         smoothmethod,window,delt)
-    elif funx=='MHW_calc':
+                calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=True,smoothedTrend=True,
+                                         smoothmethod=smoothmethod,window=windowhalfwid,delt=5)
+    elif funx=='MHW_calc_smoothed':
         ind=int(sys.argv[2]) # index, 0 to 42
-        opt=int(sys.argv[3]) # numer referencing option set
-        if opt==0: # no smoothing
-            smoothedClim=False
-            smoothedTrend=False
-            smoothmethod=None
-            window=0
-            delt=0
-        elif opt==1: # all smoothing
-            smoothedClim=True
-            smoothedTrend=True
-            smoothmethod=smoothmethod
-            window=windowhalfwid
-            delt=15
+        qtile=.9
         for ilead in range(ind*5,(ind+1)*5):
             for jj in range(0,180,60):
                 print(f'start {ilead},{jj},{qtile}')
-                MHW_calc(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
-                                         smoothmethod,window,delt)
-    #elif funx=='MHW_calc':  #old
-    #    ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
-    #    qtile=0.9
-    #    climyrs=[1993,2023]
-    #    for detr in (True,False):
-    #        for ilead in range(ind*5,(ind+1)*5):
-    #            for jj in range(0,180,60):
-    #                print(f'start {detr},{ilead},{jj},{qtile}')
-    #                MHW_calc(climyrs,ilead,jj,qtile,detr)
+                MHW_calc_smoothed(climyrs,ilead,jj,qtile,detr=True, smoothmethod=smoothmethod,window=windowhalfwid,delt=5)
+    elif funx=='MHW_calc':
+        ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
+        qtile=0.9
+        climyrs=[1993,2023]
+        for detr in (True,False):
+            for ilead in range(ind*5,(ind+1)*5):
+                for jj in range(0,180,60):
+                    print(f'start {detr},{ilead},{jj},{qtile}')
+                    MHW_calc(climyrs,ilead,jj,qtile,detr)
     elif funx=='regrid_daily_OISST':
         # after combining files with MHW_OISST/concatFiles.py
         for yrlims in ylimlistobs:
