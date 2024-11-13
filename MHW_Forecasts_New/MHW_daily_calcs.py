@@ -74,14 +74,15 @@ def fnameCanESMAnomDetrQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, 
 #fnameCanESMAnomQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
 #       f"{mdir}/byLead/qtileByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
 #       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
-def fnameCanESMMHWDetr(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
+def fnameCanESMMHWDetr(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0,qtvar='qt1'): 
     subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
+    qvstr='_'+qtvar
     return f"{mdir}/{subdir}/MHWDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-            f"L{ilead:03}{strdelt}_j{istartlat:03}_q{qstr}_ocean_1d_surface_tso.nc"
+            f"L{ilead:03}{strdelt}_j{istartlat:03}{qvstr}_q{qstr}_ocean_1d_surface_tso.nc"
 #fnameCanESMMHW=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
 #       f"{mdir}/byLeadMHW/MHWByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
 #       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
@@ -89,7 +90,8 @@ fnameOISSTDaily = lambda iy, im:\
        f"{osrcdir}/oisst-avhrr-v02r01.{iy}{im:02}_daily.nc"
 fnameOISSTDailyGrid2 = lambda yrlims: \
        f"{workdir}/OISST/oisst-avhrr-v02r01.regridded1x1g2.daily.{yrlims[0]}_{yrlims[-1]}.nc"
-
+fnameOISSTDailyClim=lambda climyfirst, climylast: \
+       f"{workdir}/OISST/climSST_oisst-avhrr-v02r01.regridded1x1g2.daily_C{climyfirst:04}_{climylast:04}.nc"
 
 def mkdirs(fsave):
     saveloc=os.path.dirname(fsave)
@@ -426,18 +428,18 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     ff.close()
     return
 
-def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
+def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0,qtvar='qt1'):
     if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
         fanom=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) 
-        fqtile=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window)
-        fMHW=fnameCanESMMHWDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window)
+        fqtile=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
+        fMHW=fnameCanESMMHWDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt,qtvar=qtvar)
     else:
         raise Exception('not implemented yet')
     ff=xr.open_dataset(fanom,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month')).values
     sh=fc.shape
     fq=xr.open_dataset(fqtile,decode_times=False)
-    ql=fq['qt1'].values
+    ql=fq[qtvar].values
     qt2=np.expand_dims(ql,[0,2])
     MHW=np.ma.masked_where(np.isnan(fc),np.where(fc>qt2,1,0))
     MHWstack=np.reshape(MHW,(sh[0]*sh[1],sh[2],sh[3],sh[4]))
@@ -525,9 +527,30 @@ def regrid_daily_OISST(yrlims):
     fD.close()
     return
 
-def process_daily_OISST():
-    
+def calc_OISST_clim(yrlims):
+    flist=[fnameOISSTDailyGrid2(yrlims) for yrlims in ylimlistobs]
+    fg2=xr.open_mfdataset(flist,decode_times=False,parallel=True)
+    sst=fg2.sst.data.rechunk((len(fg2.time.values),90,90))
+    tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in fg2.time.values])
+    yd=np.array([(dt.datetime(el.year,el.month,el.day)-dt.datetime(el.year-1,12,31)).days for el in tdt])
+    climsst=np.zeros((365,180,360))
+    for iyd in range(1,366):
+        ind=yd==iyd
+        if iyd==365: ind=np.logical_or(ind,yd==366)
+        indyrs=np.array([(el.year>=climyrs[0])&(el.year<=climyrs[-1]) for el in tdt])
+        ind=np.logical_and(ind,indyrs)
+        climsst[iyd-1,:,:]=sst.mean(axis=0)
+        if iyd%10==0: print(iyd)
+    ds=xr.Dataset(data_vars={'sst':(['yearday','lat','lon'],climsst)},
+                             coords={'yearday':np.arange(1,366),
+                                     'lat':fg2.lat,
+                                     'lon':fg2.lon})
+    fout=fnameOISSTDailyClim(climyrs[0],climyrs[-1])
+    ds.to_netcdf(fout,mode='w') 
     return
+#def process_daily_OISST():
+#    
+#    return
 
 if __name__=="__main__":
     # argument options:
@@ -624,6 +647,7 @@ if __name__=="__main__":
     elif funx=='MHW_calc':
         ind=int(sys.argv[2]) # index, 0 to 42
         opt=int(sys.argv[3]) # numer referencing option set
+        qtvarname=sys.argv[4] # qt1 or qt2; qt1 is 1 month, qt2 is 3 month (at same lead)
         if opt==0: # no smoothing
             smoothedClim=False
             smoothedTrend=False
@@ -635,12 +659,12 @@ if __name__=="__main__":
             smoothedTrend=True
             smoothmethod=smoothmethod
             window=windowhalfwid
-            delt=15
+            delt=5
         for ilead in range(ind*5,(ind+1)*5):
             for jj in range(0,180,60):
                 print(f'start {ilead},{jj},{qtile}')
                 MHW_calc(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
-                                         smoothmethod,window,delt)
+                                         smoothmethod,window,delt,qtvarname)
     #elif funx=='MHW_calc':  #old
     #    ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
     #    qtile=0.9
@@ -654,4 +678,6 @@ if __name__=="__main__":
         # after combining files with MHW_OISST/concatFiles.py
         for yrlims in ylimlistobs:
             regrid_daily_OISST(yrlims)
+    elif funx=='calc_OISST_clim':
+        calc_OISST_clim(climyrs)
     print('Done')

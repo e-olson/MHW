@@ -1,0 +1,16 @@
+## MHW_daily_calcs.py
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=6GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N dclim
+#PBS -o dclim_out.txt
+#PBS -e dclim_err.txt
+
+
+source /home/reo000/myconda
+conda activate py39dc2
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py calc_OISST_clim
+echo 'end'
