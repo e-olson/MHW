@@ -92,7 +92,20 @@ fnameOISSTDailyGrid2 = lambda yrlims: \
        f"{workdir}/OISST/oisst-avhrr-v02r01.regridded1x1g2.daily.{yrlims[0]}_{yrlims[-1]}.nc"
 fnameOISSTDailyClim=lambda climyfirst, climylast: \
        f"{workdir}/OISST/climSST_oisst-avhrr-v02r01.regridded1x1g2.daily_C{climyfirst:04}_{climylast:04}.nc"
-
+fnameOISSTDailyClimSmooth=lambda climyfirst, climylast,method,window: \
+       f"{workdir}/OISST/climSST_smooth_{method}{window}_oisst-avhrr-v02r01.regridded1x1g2.daily_C{climyfirst:04}_{climylast:04}.nc"
+def fnameOISSTAnom(yrlims, climyrs, istartlat, smoothClim=False, meth=None, win=1):
+    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
+    return f"{workdir}/OISST/oisst_anom{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}-avhrr-v02r01.regridded1x1g2.daily.{yrlims[0]}_{yrlims[-1]}_j{istartlat}.nc"
+def fnameOISSTAnomDetr(yrlims, climyrs, istartlat, smoothClim=False, meth=None, win=1):
+    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
+    return f"{workdir}/OISST/oisst_anom_detr{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}-avhrr-v02r01.regridded1x1g2.daily.{yrlims[0]}_{yrlims[-1]}_j{istartlat}.nc"
+def fnameOISSTQTile(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1,detr=True,delt=1):
+    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
+    strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
+    qstr='{:.2f}'.format(qt).replace('.','_')
+    return f"{workdir}/OISST/oisst_qtile{'_detr' if detr else ''}{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}_q{qstr}{strdelt}-avhrr-v02r01.regridded1x1g2.daily.j{istartlat}.nc"
+    
 def mkdirs(fsave):
     saveloc=os.path.dirname(fsave)
     if not os.path.exists(saveloc):
@@ -101,6 +114,11 @@ def mkdirs(fsave):
         except FileExistsError:
             pass # in case other code running at the same time got to it first
     return
+
+def yd365(tdt):
+    yd=int((dt.datetime(tdt.year,tdt.month,tdt.day)-dt.datetime(tdt.year-1,12,31)).days) # extra code in case of time components
+    if yd==366: yd=365 # move leap days to overlap with day 365
+    return yd
 
 def lsqfit_md_detr(data):
     # linearly detrend along axis 0
@@ -158,7 +176,7 @@ def _add_dims(arr,tarr):
         arr=np.expand_dims(arr,-1)
     return arr
 
-def trismooth(t,vals,L=30):
+def trismooth(t,vals,L=30,periodic=False):
     # t is values assoc with 1st dim
     # smooths over 1st dim
     # if vector, add dim:
@@ -168,8 +186,12 @@ def trismooth(t,vals,L=30):
         vals=np.expand_dims(vals,axis=1)
     fil=np.empty(np.shape(vals))
     for ind, ti in enumerate(t):
-        diff=np.abs(ti-t)
-        Leff=min(L,alpha*(ti-t[0]+1)*delt,alpha*(t[-1]-ti+1)*delt)# do not smooth beginning and end asymmetrically
+        if periodic:
+            diff=np.minimum(np.minimum(np.abs(ti-t),np.abs(ti-t-365)),np.abs(ti-t+365))
+            Leff=L
+        else:
+            diff=np.abs(ti-t)
+            Leff=min(L,alpha*(ti-t[0]+1)*delt,alpha*(t[-1]-ti+1)*delt)# do not smooth beginning and end asymmetrically
         weight=_add_dims(np.maximum(Leff-diff,0),vals)
         fil[ind,...]=np.divide(np.nansum(weight*vals,0),np.nansum(weight*~np.isnan(vals),0),
                                out=np.nan*da.array(np.ones(np.shape(vals)[1:])),
@@ -412,9 +434,9 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     ql2=np.nan*np.ones((12,sh[-2],sh[-1]))
     for ii in range(0,12):
         pool1=fc.isel(month=ii).values.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5]))
-        ql1[ii,...]=np.nanquantile(pool1,0.9,axis=0)
+        ql1[ii,...]=np.nanquantile(pool1,qtile,axis=0)
         pool2=fc.sel(month=getind(ii)).values.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5]))
-        ql2[ii,...]=np.nanquantile(pool2,0.9,axis=0)
+        ql2[ii,...]=np.nanquantile(pool2,qtile,axis=0)
     fqout=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, 
                                    smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
     print(fqout)
@@ -532,14 +554,13 @@ def calc_OISST_clim(yrlims):
     fg2=xr.open_mfdataset(flist,decode_times=False,parallel=True)
     sst=fg2.sst.data.rechunk((len(fg2.time.values),90,90))
     tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in fg2.time.values])
-    yd=np.array([(dt.datetime(el.year,el.month,el.day)-dt.datetime(el.year-1,12,31)).days for el in tdt])
+    yd=np.array([yd365(el) for el in tdt]) # day 366 is returned as 365
     climsst=np.zeros((365,180,360))
     for iyd in range(1,366):
         ind=yd==iyd
-        if iyd==365: ind=np.logical_or(ind,yd==366)
         indyrs=np.array([(el.year>=climyrs[0])&(el.year<=climyrs[-1]) for el in tdt])
         ind=np.logical_and(ind,indyrs)
-        climsst[iyd-1,:,:]=sst.mean(axis=0)
+        climsst[iyd-1,:,:]=sst[ind,:,:].mean(axis=0)
         if iyd%10==0: print(iyd)
     ds=xr.Dataset(data_vars={'sst':(['yearday','lat','lon'],climsst)},
                              coords={'yearday':np.arange(1,366),
@@ -548,6 +569,107 @@ def calc_OISST_clim(yrlims):
     fout=fnameOISSTDailyClim(climyrs[0],climyrs[-1])
     ds.to_netcdf(fout,mode='w') 
     return
+
+def smooth_OISST_clim(yrlims,smoothmeth,windowhalf):
+    fclim=xr.open_dataset(fnameOISSTDailyClim(climyrs[0],climyrs[-1]),decode_times=False)
+    climS=da.empty_like(fclim.variables['sst'].values)
+    smoothClim=trismooth(np.arange(0,365),fclim['sst'].values,L=windowhalf,periodic=True)
+    fout=fnameOISSTDailyClimSmooth(climyrs[0],climyrs[-1],smoothmeth,windowhalf)
+    ds=xr.Dataset(data_vars={'sst':(['yearday','lat','lon'],smoothClim)},
+                             coords={'yearday':np.arange(1,366),
+                                     'lat':fclim.lat,
+                                     'lon':fclim.lon})
+    ds.to_netcdf(fout,mode='w')    
+    return
+
+def OISST_anom(yrlims,climyrs,smoothClim=False, meth=None, win=1):
+    if smoothClim:
+        climpath=fnameOISSTDailyClimSmooth(climyrs[0],climyrs[-1],smoothmethod,windowhalfwid)
+    else:
+        climpath=climpath=fnameOISSTDailyClim(climyrs[0],climyrs[-1])
+    fclim=xr.open_dataset(climpath)
+    print(yrlims)
+    ifile=fnameOISSTDailyGrid2(yrlims)
+    fsst=xr.open_dataset(ifile,decode_times=False,chunks={'time':365,})
+    tdt=[dt.datetime(1978,1,1)+dt.timedelta(days=float(ii)) for ii in fsst.time.values]
+    yd=[yd365(el) for el in tdt] # max 365
+    sst_an=np.empty(np.shape(fsst.sst.values))
+    # Loop over time
+    for ind, iyd in enumerate(yd):
+        if ind%100==0: print(ind)
+        sst_an[ind,...] = fsst.sst.values[ind,...] - fclim.sst.values[iyd-1,...]
+    for jj in range(0,180,60):
+        fout=fnameOISSTAnom(yrlims,climyrs, jj, smoothClim=True, meth=smoothmethod, win=windowhalfwid)
+        dsout=xr.Dataset(data_vars={'sst_an':(['time','lat','lon'],sst_an[:,jj:jj+60,:])},
+                         coords={'time':fsst.time,
+                                 'lat':fsst.lat.isel(lat=slice(jj,jj+60)),
+                                 'lon':fsst.lon})
+        dsout.to_netcdf(fout,mode='w')
+        print(fout)
+    return
+
+def OISST_anom_detr(climyrs,smoothClim=False, meth=None, win=1):
+    for jj in range(0,180,60):
+        flist=[fnameOISSTAnom(yrlims, climyrs, jj, smoothClim, meth, win) for yrlims in ylimlistobs]
+        fanom=xr.open_mfdataset(flist,decode_times=False,parallel=True)
+        sst_an=lsqfit_md_detr(fanom.sst_an.values)
+        fout=fnameOISSTAnomDetr([ylimlistobs[0][0],ylimlistobs[-1][-1]],climyrs, jj, smoothClim, meth, win)
+        dsout=xr.Dataset(data_vars={'sst_an':(['time','lat','lon'],sst_an)},
+                         coords={'time':fanom.time,
+                                 'lat':fanom.lat,
+                                 'lon':fanom.lon})
+        dsout.to_netcdf(fout,mode='w')
+    return
+
+def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,win=1,delt=0):
+    # delt windows in year-day (qt1 and qt2)
+    # qt2 is also +/1 1 month
+    def getind(i0):
+        if i0>=1 and i0<=10:
+            return [i0-1,i0,i0+1]
+        elif i0==0:
+            return [11,0,1]
+        elif i0==11:
+            return [10,11,0]
+    def _ix(ii,yd):
+        return np.logical_or(np.logical_or((yd>=ii-delt)&(yd<=ii+delt),(yd-365>=ii-delt)&(yd-365<=ii+delt)),(yd+365>=ii-delt)&(yd+365<=ii+delt))
+    # def leadbounds(l0,lmax,delt):
+    #     i0=min(max(l0-delt,0),lmax-(2*delt+1))
+    #     return i0, i0+2*delt+1
+    if detr:
+        flist=[fnameOISSTAnomDetr([ylimlistobs[0][0],ylimlistobs[-1][-1]],climyrs, jj, smoothClim, meth, win),]
+    else:
+        flist=[fnameOISSTAnom(yrlims, climyrs, jj, smoothClim, meth, win) for yrlims in ylimlistobs]
+    print(flist)
+    ff=xr.open_mfdataset(flist,parallel=True,decode_times=False)
+    tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in ff.time.values])
+    yy=[el.year for el in tdt]
+    iy=int(np.argmax(np.array(yy)>2023))
+    ff=ff.isel(time=slice(0,iy))
+    vals=ff['sst_an'].values
+    tdt=tdt[:iy]
+    yd=np.array([(dt.datetime(el.year,el.month,el.day)-dt.datetime(el.year-1,12,31)).days for el in tdt])
+    ql1=np.zeros((366,)+np.shape(ff.sst_an.values)[1:])
+    ql2=np.zeros((366,)+np.shape(ff.sst_an.values)[1:])
+    for ii in range(1,366):
+        ix1=_ix(ii,yd)
+        pool1=vals[ix1,:,:]
+        ql1[ii-1,...]=np.nanquantile(pool1,qtile,axis=0)
+        ix2=np.logical_or(np.logical_or(ix1,_ix(ii-30,yd)),_ix(ii+30,yd)) # use 30 day rather than specfic months; for comparison with Jacox monthly version
+        pool2=vals[ix2,:,:]
+        ql2[ii-1,...]=np.nanquantile(pool2,qtile,axis=0)
+    fqout = fnameOISSTQTile(climyrs, jj, qtile, smoothClim, meth, win,detr,delt)
+    print(fqout)
+    dsqt=xr.Dataset(data_vars={'qt1':(['yd','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
+                               'qt2':(['yd','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
+                   coords={'yd':np.arange(1,366),
+                           'lat':ff.lat,
+                           'lon':ff.lon})
+    dsqt.to_netcdf(fqout,mode='w')
+    del dsqt; 
+    ff.close()
+    return
+
 #def process_daily_OISST():
 #    
 #    return
@@ -559,8 +681,8 @@ if __name__=="__main__":
     funx=sys.argv[1] # what function to execute
     ncpu=len(os.sched_getaffinity(0))
     climyrs=[1993,2023]
-    windowhalfwid=10
-    smoothmethod='tri'
+    windowhalfwid=halfwin
+    smoothmethod=method
     if funx=='fconvert_CanESM':
         starty=int(sys.argv[2])
         endy=int(sys.argv[3])
@@ -639,7 +761,7 @@ if __name__=="__main__":
             smoothedTrend=True
             smoothmethod=smoothmethod
             window=windowhalfwid
-            delt=15
+            delt=5
         for ilead in range(ind*5,(ind+1)*5):
             for jj in range(0,180,60):
                 calc_quantile_detr_A(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
@@ -680,4 +802,30 @@ if __name__=="__main__":
             regrid_daily_OISST(yrlims)
     elif funx=='calc_OISST_clim':
         calc_OISST_clim(climyrs)
+        smooth_OISST_clim(climyrs,smoothmethod,windowhalfwid)
+    elif funx=='OISST_anom':
+        seg=int(sys.argv[2])
+        if seg>=len(ylimlistobs): 
+            raise Exception('seg too high')
+        else:
+            yrlims=ylimlistobs[seg]
+        smoothedClim=True
+        OISST_anom(yrlims,climyrs,smoothedClim, smoothmethod, windowhalfwid)
+    elif funx=='OISST_anom_detr':
+        smoothedClim=True
+        OISST_anom_detr(climyrs,smoothedClim, smoothmethod, windowhalfwid)
+    elif funx=='calc_quantile_OISST':
+        smoothedClim=True
+        delt=10
+        for jj in range(0,180,60):
+            calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
+    elif funx=='IndivCalcs':
+        # anomalies
+        for yrlims in ylimlistobs:
+            OISST_anom(yrlims,climyrs)
+        # remove trend
+        OISST_anom_detr(climyrs)
+        # quantiles
+        for jj in range(0,180,60):
+            calc_quantile_OISST(climyrs,jj,qtile,detr=True)
     print('Done')

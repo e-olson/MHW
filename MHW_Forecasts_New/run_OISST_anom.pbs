@@ -1,0 +1,16 @@
+## MHW_daily_calcs.py
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=6GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N OISSTAnom
+#PBS -o OISSTAnom_out^array_index^.txt
+#PBS -e OISSTAnom_err^array_index^.txt
+#PBS -J 0-3
+
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py OISST_anom $PBS_ARRAY_INDEX 
+echo 'end'
