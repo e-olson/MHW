@@ -549,7 +549,7 @@ def regrid_daily_OISST(yrlims):
     fD.close()
     return
 
-def calc_OISST_clim(yrlims):
+def calc_OISST_clim(climyrs):
     flist=[fnameOISSTDailyGrid2(yrlims) for yrlims in ylimlistobs]
     fg2=xr.open_mfdataset(flist,decode_times=False,parallel=True)
     sst=fg2.sst.data.rechunk((len(fg2.time.values),90,90))
@@ -570,7 +570,7 @@ def calc_OISST_clim(yrlims):
     ds.to_netcdf(fout,mode='w') 
     return
 
-def smooth_OISST_clim(yrlims,smoothmeth,windowhalf):
+def smooth_OISST_clim(climyrs,smoothmeth,windowhalf):
     fclim=xr.open_dataset(fnameOISSTDailyClim(climyrs[0],climyrs[-1]),decode_times=False)
     climS=da.empty_like(fclim.variables['sst'].values)
     smoothClim=trismooth(np.arange(0,365),fclim['sst'].values,L=windowhalf,periodic=True)
@@ -584,9 +584,10 @@ def smooth_OISST_clim(yrlims,smoothmeth,windowhalf):
 
 def OISST_anom(yrlims,climyrs,smoothClim=False, meth=None, win=1):
     if smoothClim:
-        climpath=fnameOISSTDailyClimSmooth(climyrs[0],climyrs[-1],smoothmethod,windowhalfwid)
+        climpath=fnameOISSTDailyClimSmooth(climyrs[0],climyrs[-1],meth,win)
     else:
-        climpath=climpath=fnameOISSTDailyClim(climyrs[0],climyrs[-1])
+        print('in OISST_anom, smoothClim=False')
+        climpath=fnameOISSTDailyClim(climyrs[0],climyrs[-1])
     fclim=xr.open_dataset(climpath)
     print(yrlims)
     ifile=fnameOISSTDailyGrid2(yrlims)
@@ -599,7 +600,7 @@ def OISST_anom(yrlims,climyrs,smoothClim=False, meth=None, win=1):
         if ind%100==0: print(ind)
         sst_an[ind,...] = fsst.sst.values[ind,...] - fclim.sst.values[iyd-1,...]
     for jj in range(0,180,60):
-        fout=fnameOISSTAnom(yrlims,climyrs, jj, smoothClim=True, meth=smoothmethod, win=windowhalfwid)
+        fout=fnameOISSTAnom(yrlims,climyrs, jj, smoothClim, meth, win)
         dsout=xr.Dataset(data_vars={'sst_an':(['time','lat','lon'],sst_an[:,jj:jj+60,:])},
                          coords={'time':fsst.time,
                                  'lat':fsst.lat.isel(lat=slice(jj,jj+60)),
@@ -632,7 +633,9 @@ def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,wi
         elif i0==11:
             return [10,11,0]
     def _ix(ii,yd):
-        return np.logical_or(np.logical_or((yd>=ii-delt)&(yd<=ii+delt),(yd-365>=ii-delt)&(yd-365<=ii+delt)),(yd+365>=ii-delt)&(yd+365<=ii+delt))
+        return np.logical_or(np.logical_or((yd>=ii-delt)&(yd<=ii+delt),
+                                           (yd-365>=ii-delt)&(yd-365<=ii+delt)),
+                                           (yd+365>=ii-delt)&(yd+365<=ii+delt))
     # def leadbounds(l0,lmax,delt):
     #     i0=min(max(l0-delt,0),lmax-(2*delt+1))
     #     return i0, i0+2*delt+1
@@ -644,13 +647,13 @@ def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,wi
     ff=xr.open_mfdataset(flist,parallel=True,decode_times=False)
     tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in ff.time.values])
     yy=[el.year for el in tdt]
-    iy=int(np.argmax(np.array(yy)>2023))
+    iy=int(np.argmax(np.array(yy)>climyrs[-1])) # index of first date outside climatology period
     ff=ff.isel(time=slice(0,iy))
     vals=ff['sst_an'].values
     tdt=tdt[:iy]
     yd=np.array([(dt.datetime(el.year,el.month,el.day)-dt.datetime(el.year-1,12,31)).days for el in tdt])
-    ql1=np.zeros((366,)+np.shape(ff.sst_an.values)[1:])
-    ql2=np.zeros((366,)+np.shape(ff.sst_an.values)[1:])
+    ql1=np.zeros((365,)+np.shape(ff.sst_an.values)[1:])
+    ql2=np.zeros((365,)+np.shape(ff.sst_an.values)[1:])
     for ii in range(1,366):
         ix1=_ix(ii,yd)
         pool1=vals[ix1,:,:]
@@ -820,11 +823,12 @@ if __name__=="__main__":
         for jj in range(0,180,60):
             calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
     elif funx=='IndivCalcs':
-        # anomalies
-        for yrlims in ylimlistobs:
-            OISST_anom(yrlims,climyrs)
-        # remove trend
-        OISST_anom_detr(climyrs)
+        ## anomalies
+        #for yrlims in ylimlistobs:
+        #    OISST_anom(yrlims,climyrs)
+        #print(f'anom saved yrlims:{yrlims}')
+        ## remove trend
+        #OISST_anom_detr(climyrs)
         # quantiles
         for jj in range(0,180,60):
             calc_quantile_OISST(climyrs,jj,qtile,detr=True)
