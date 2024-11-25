@@ -32,26 +32,34 @@ fnameCanESMClimSmooth=lambda mdir, climyfirst, climylast, mm, method, window: \
 #fnameCanESMAnomSClim=lambda mdir, climyfirst,climylast,lfirst,llast,mm,meth,win:\
 #       f"{mdir}/anom/anom_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_SMon{mm:02}_"\
 #       f"L_{lfirst:03}_{llast:03}_ocean_1d_surface_tso.nc"
+## before reorg by lead:
 fnameCanESMAnom=lambda mdir, climyfirst, climylast, yyyy, mm: \
        f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"SYr{yyyy:04}Mon{mm:02}_ocean_1d_surface_tso.nc"
 fnameCanESMAnomSClim=lambda mdir, climyfirst, climylast, yyyy, mm, meth, win: \
        f"{mdir}/anom/anom_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"SYr{yyyy:04}Mon{mm:02}_ocean_1d_surface_tso.nc"
-fnameCanESMAnomByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
-       f"{mdir}/byLead/anomByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+## after reorg by lead:
+def fnameCanESMAnomByLeadNoDetr(mdir, climyfirst, climylast, ilead, istartlat,  smoothClim=False,meth=None,win=1):
+    strSClim=f'_sclim{meth}{win}' if smoothClim else ''
+    return f"{mdir}/byLead/anomByLead{strSClim}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-fnameCanESMAnomByLeadSClim=lambda mdir, climyfirst, climylast, ilead, istartlat,meth,win: \
-       f"{mdir}/byLead/anomByLead_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-fnameCanESMAnomDetrByLeadIndiv=lambda mdir, climyfirst, climylast, ilead, istartlat: \
-       f"{mdir}/byLeadDetrIndiv2/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+#fnameCanESMAnomByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
+#       f"{mdir}/byLead/anomByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+#       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+#fnameCanESMAnomByLeadSClim=lambda mdir, climyfirst, climylast, ilead, istartlat,meth,win: \
+#       f"{mdir}/byLead/anomByLead_sclim{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+#       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+#fnameCanESMAnomDetrByLeadIndiv=lambda mdir, climyfirst, climylast, ilead, istartlat: \
+#       f"{mdir}/byLeadDetrIndiv2/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+#       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 #fnameCanESMAnomDetrByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
 #       f"{mdir}/byLeadDetr/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
 #       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-def fnameCanESMDetrFitByLead(mdir, climyfirst, climylast, ilead, istartlat, sourcedesig=''):
-    subdir='byLeadDetrIndiv2' if sourcedesig=='' else 'byLeadDetr'
+def fnameCanESMDetrFitByLead(mdir, climyfirst, climylast, ilead, istartlat, smoothClim=False,meth=None,win=1):
+    sourcedesig = f'_ClimS{smoothmethod}{window}' if smoothClim else ''
+    subdir='byLeadDetr'
+    #subdir='byLeadDetrIndiv2' if sourcedesig=='' else 'byLeadDetr'
     return f"{mdir}/{subdir}/fitDetrByLead{sourcedesig}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 fnameCanESMDetrFitByLeadS=lambda mdir, climyfirst, climylast, ilead, istartlat, meth, win, sourcedesig='': \
@@ -63,25 +71,24 @@ def fnameCanESMAnomDetrByLead(mdir, climyfirst, climylast, ilead, istartlat, smo
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     return f"{mdir}/{subdir}/anomDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
-def fnameCanESMAnomDetrQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
+def fnameCanESMAnomQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=False, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
     subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
-    return f"{mdir}/{subdir}/qtileDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    detrstr=f"Detr" if detrend else ""
+    return f"{mdir}/{subdir}/qtile{detrstr}ByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"L{ilead:03}{strdelt}_j{istartlat:03}_q{qstr}_ocean_1d_surface_tso.nc"
-#fnameCanESMAnomQtile=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
-#       f"{mdir}/byLead/qtileByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
-#       f"L{ilead:03}_j{istartlat:03}_q{'{:.2f}'.format(qt).replace('.','_')}_ocean_1d_surface_tso.nc"
-def fnameCanESMMHWDetr(mdir, climyfirst, climylast, ilead, istartlat, qt, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0,qtvar='qt1'): 
+def fnameCanESMMHW(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=False, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0,qtvar='qt1'): 
     subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
+    detrstr=f"Detr" if detrend else ""
     qvstr='_'+qtvar
-    return f"{mdir}/{subdir}/MHWDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    return f"{mdir}/{subdir}/MHW{detrstr}ByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"L{ilead:03}{strdelt}_j{istartlat:03}{qvstr}_q{qstr}_ocean_1d_surface_tso.nc"
 #fnameCanESMMHW=lambda mdir, climyfirst, climylast, ilead, istartlat, qt: \
 #       f"{mdir}/byLeadMHW/MHWByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
@@ -100,7 +107,7 @@ def fnameOISSTAnom(yrlims, climyrs, istartlat, smoothClim=False, meth=None, win=
 def fnameOISSTAnomDetr(yrlims, climyrs, istartlat, smoothClim=False, meth=None, win=1):
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     return f"{workdir}/OISST/oisst_anom_detr{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}-avhrr-v02r01.regridded1x1g2.daily.{yrlims[0]}_{yrlims[-1]}_j{istartlat}.nc"
-def fnameOISSTQTile(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1,detr=True,delt=1):
+def fnameOISSTQTile(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1,detr=True,delt=0):
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
@@ -163,7 +170,6 @@ def lsqfit_md_detrPooled_saveb(x0,data,climyrs,ilead,istartlat,lats,lons,fout): 
     b=np.linalg.lstsq(X,newdata,rcond=None)[0] # res=np.sum((np.dot(X,b)-Y)**2)
     ydetr=newdata-np.dot(X,b)
     b=np.reshape(b,tuple([2]+list(dshape)[2:]))
-    #fout=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, istartlat)
     dsb=xr.Dataset(data_vars={'fit':(['b','lat','lon'],b),},
                    coords={'b':np.arange(0,2),
                            'lat':lats,
@@ -308,17 +314,15 @@ def anom_bylead(climyrs,nleads,smoothClim=False,smoothmethod=None,window=1):
                 sst_an2=ff.sst_an.chunk({'reftime':ff.sst_an.shape[0],'r':20,'lat':30,'lon':360})
                 # fix time
                 reftime=[dt.datetime(yy,mm,1,0,0) for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
-                time=[dt.datetime(yy,mm,1,0,0)+dt.timedelta(hours=float(ff.leadtime.values)) for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
+                time=[dt.datetime(yy,mm,1,0,0)+dt.timedelta(hours=float(ff.leadtime.values)) \
+                            for yy in range(1993,2025) for mm in range(1,13) if yy<2024 or mm<=6]
                 fout=xr.Dataset(data_vars={'sst_an':(['reftime','r','lat','lon'],sst_an2.data),
                                            'time':(['reftime',],time,{'long_name':'Real Time'})},
                                 coords={'reftime':reftime,
                                         'r':np.arange(0,ff.sst_an.shape[1]),
                                         'lat':ff.lat,
                                         'lon':ff.lon})
-                if smoothClim:
-                    fnamout=fnameCanESMAnomByLeadSClim(workdir,climyrs[0],climyrs[-1],ilead,jj,smoothmethod,window)
-                else:
-                    fnamout=fnameCanESMAnomByLead(workdir,climyrs[0],climyrs[-1],ilead,jj)
+                fnamout=fnameCanESMAnomByLeadNoDetr(workdir,climyrs[0],climyrs[-1],ilead,jj,smoothClim,smoothmethod,window)
                 mkdirs(fnamout)
                 print(fnamout)
                 fout.to_netcdf(fnamout,mode='w') # encoding={'sst_an': {'chunksizes': [Anom0.shape[0],1,20,360]}}
@@ -327,13 +331,8 @@ def anom_bylead(climyrs,nleads,smoothClim=False,smoothmethod=None,window=1):
     return
 
 def anom_bylead_savetr(climyrs,ilead,jj,smoothClim=False,smoothmethod=None,window=1):
-    if smoothClim:
-        fin=fnameCanESMAnomByLeadSClim(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothmethod,window)
-        desstr=f'_ClimS{smoothmethod}{window}'
-        fout=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,desstr)
-    else:
-        fin=fnameCanESMAnomByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
-        fout=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
+    fin=fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim, smoothmethod, window)
+    fout=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, jj, smoothClim,smoothmethod,window)
     mkdirs(fout)
     print(fout)
     ff=xr.open_dataset(fin,decode_times=False)
@@ -347,7 +346,8 @@ def smoothTrend_CanESM5(yind,climyrs,smoothmethod,window):
         smoothfun=trismooth
     else:
         raise Exception('method not implemented:',smoothmethod)
-    flistbS=[fnameCanESMDetrFitByLead(workdir, climyrs[0],climyrs[-1], ilead, yind,desstr) for ilead in range(0,215)]
+    flistbS=[fnameCanESMDetrFitByLead(workdir, climyrs[0],climyrs[-1], ilead, yind, smoothClim=False,smoothmethod=None,window=1) \
+                for ilead in range(0,215)]
     fbS=xr.open_mfdataset(flistbS,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
     borig=fbS.fit.data.rechunk([-1,-1,30,180])
     bsmooth=da.map_blocks(smoothfun,fbS.leadtime.values,borig,window,dtype=float) #here lead time is in days
@@ -387,19 +387,14 @@ def smoothTrend_CanESM5(yind,climyrs,smoothmethod,window):
 
 def anom_bylead_detr(climyrs,ilead,jj,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1):
     # note: smoothedTrend implies smoothedClim, but can load unsmoothed trends from smoothed climatology-based anomalies
-    if smoothedClim:
-        desstr=f'_ClimS{smoothmethod}{window}'
-        fin=fnameCanESMAnomByLeadSClim(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothmethod,window)
     if smoothedTrend:
         fb=fnameCanESMDetrFitByLeadS(workdir, climyrs[0],climyrs[-1], ilead, jj, smoothmethod, window, desstr)
-        fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=True,smoothTrend=True,meth=smoothmethod,win=window)
-    elif smoothedClim: # (and not smoothedTrend)
-        fb=fnameCanESMDetrFitByLead(workdir, climyrs[0],climyrs[-1], ilead, jj, desstr)
-        fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=True,smoothTrend=False,meth=smoothmethod,win=window)
-    else: # no smoothing
-        fin=fnameCanESMAnomByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
-        fb=fnameCanESMDetrFitByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
-        fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj)
+    else:
+        fb=fnameCanESMDetrFitByLead(workdir, climyrs[0],climyrs[-1], ilead, jj, smoothedClim,smoothmethod,window)
+    fin=fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], ilead, jj, smoothedClim,smoothmethod,window)
+    if smoothedTrend and not smoothedClim: raise Exception('Bad combination: smoothed trend without smoothed climatology')
+    fout=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=True,smoothTrend=True,meth=smoothmethod,win=window)
+    # 3 options: no smoothing; smoothed clim and raw trend; smoothed clim and smoothed trend
     mkdirs(fout)
     ff=xr.open_dataset(fin,decode_times=False)
     ftr=xr.open_dataset(fb,decode_times=False)
@@ -411,7 +406,7 @@ def anom_bylead_detr(climyrs,ilead,jj,smoothedClim=False,smoothedTrend=False,smo
     ftr.close()
     return
 
-def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
+def calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
     # version 1: 10 day windows in lead time
     lmax=215
     def getind(i0):
@@ -421,12 +416,20 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
             return [11,0,1]
         elif i0==11:
             return [10,11,0]
+    #def leadbounds(l0,lmax,delt):
+    #    i0=min(max(l0-delt,0),lmax-(2*delt+1))
+    #    return i0, i0+2*delt+1
     def leadbounds(l0,lmax,delt):
-        i0=min(max(l0-delt,0),lmax-(2*delt+1))
-        return i0, i0+2*delt+1
-    flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) \
-            for il in range(*leadbounds(ilead,215,delt))]
+        return max(0,l0-delt), min(lmax,l0+delt+1)
+    if detr:
+        flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0],climyrs[-1],il,jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) \
+                for il in range(*leadbounds(ilead,215,delt))]
+    else:
+        flist=[fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,meth=smoothmethod,win=window) \
+                for il in range(*leadbounds(ilead,215,delt))]
     print(flist)
+    fqout=fnameCanESMAnomQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, detr, 
+                               smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
     ff=xr.open_mfdataset(flist,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
     sh=fc.shape
@@ -437,8 +440,6 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
         ql1[ii,...]=np.nanquantile(pool1,qtile,axis=0)
         pool2=fc.sel(month=getind(ii)).values.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5]))
         ql2[ii,...]=np.nanquantile(pool2,qtile,axis=0)
-    fqout=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, 
-                                   smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
     print(fqout)
     dsqt=xr.Dataset(data_vars={'qt1':(['month','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
                                'qt2':(['month','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
@@ -451,12 +452,14 @@ def calc_quantile_detr_A(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     return
 
 def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0,qtvar='qt1'):
-    if detr: # set path-defining fxns for detrended or non-detrended versions of calculation
+    if detr:    
         fanom=fnameCanESMAnomDetrByLead(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) 
-        fqtile=fnameCanESMAnomDetrQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
-        fMHW=fnameCanESMMHWDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt,qtvar=qtvar)
     else:
-        raise Exception('not implemented yet')
+        fanom=fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], ilead, jj,smoothClim=smoothedClim,meth=smoothmethod,win=window)
+    fqtile=fnameCanESMAnomQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile,detr,smoothClim=smoothedClim,
+                                smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
+    fMHW=fnameCanESMMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,detr,smoothClim=smoothedClim,
+                                smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt,qtvar=qtvar)
     ff=xr.open_dataset(fanom,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month')).values
     sh=fc.shape
@@ -658,7 +661,8 @@ def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,wi
         ix1=_ix(ii,yd)
         pool1=vals[ix1,:,:]
         ql1[ii-1,...]=np.nanquantile(pool1,qtile,axis=0)
-        ix2=np.logical_or(np.logical_or(ix1,_ix(ii-30,yd)),_ix(ii+30,yd)) # use 30 day rather than specfic months; for comparison with Jacox monthly version
+        ix2=np.logical_or(np.logical_or(ix1,_ix(ii-30,yd)),_ix(ii+30,yd)) # use 30 day rather than specfic months;
+                                                                          # for comparison with Jacox monthly version
         pool2=vals[ix2,:,:]
         ql2[ii-1,...]=np.nanquantile(pool2,qtile,axis=0)
     fqout = fnameOISSTQTile(climyrs, jj, qtile, smoothClim, meth, win,detr,delt)
@@ -750,25 +754,27 @@ if __name__=="__main__":
                     anom_bylead_detr(climyrs,ilead,jj,True,False,smoothmethod,windowhalfwid)
                 else:
                     anom_bylead_detr(climyrs,ilead,jj)
-    elif funx=='calc_quantile_detr_A':
+    elif funx=='calc_quantile_CanESM':
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
-        opt=int(sys.argv[3]) # numer referencing option set
-        if opt==0: # no smoothing
-            smoothedClim=False
-            smoothedTrend=False
-            smoothmethod=None
-            window=0
-            delt=0
-        elif opt==1: # all smoothing
-            smoothedClim=True
-            smoothedTrend=True
-            smoothmethod=smoothmethod
-            window=windowhalfwid
-            delt=5
-        for ilead in range(ind*5,(ind+1)*5):
-            for jj in range(0,180,60):
-                calc_quantile_detr_A(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
-                                         smoothmethod,window,delt)
+        opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
+        print(ind,opt,flush=True)
+        for detr in (True, False):
+            for delt in (0,5,10,30):
+                print(f"detr:{detr}, delt:{delt}",flush=True)
+                if opt==0: # no smoothing
+                    smoothedClim=False
+                    smoothedTrend=False
+                    smoothmethod=None
+                    window=0
+                elif opt==1: # all smoothing
+                    smoothedClim=True
+                    smoothedTrend=True
+                    smoothmethod=smoothmethod
+                    window=windowhalfwid
+                for ilead in range(ind*5,(ind+1)*5):
+                    for jj in range(0,180,60):
+                        calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                                                 smoothmethod,window,delt)
     elif funx=='MHW_calc':
         ind=int(sys.argv[2]) # index, 0 to 42
         opt=int(sys.argv[3]) # numer referencing option set
@@ -819,16 +825,16 @@ if __name__=="__main__":
         OISST_anom_detr(climyrs,smoothedClim, smoothmethod, windowhalfwid)
     elif funx=='calc_quantile_OISST':
         smoothedClim=True
-        delt=10
-        for jj in range(0,180,60):
-            calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
+        for delt in (5,10,15,30):
+            for jj in range(0,180,60):
+                calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
     elif funx=='IndivCalcs':
-        ## anomalies
-        #for yrlims in ylimlistobs:
-        #    OISST_anom(yrlims,climyrs)
-        #print(f'anom saved yrlims:{yrlims}')
-        ## remove trend
-        #OISST_anom_detr(climyrs)
+        # anomalies
+        for yrlims in ylimlistobs:
+            OISST_anom(yrlims,climyrs)
+        print(f'anom saved yrlims:{yrlims}')
+        # remove trend
+        OISST_anom_detr(climyrs)
         # quantiles
         for jj in range(0,180,60):
             calc_quantile_OISST(climyrs,jj,qtile,detr=True)

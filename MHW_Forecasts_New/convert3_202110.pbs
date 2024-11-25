@@ -7,8 +7,8 @@
 #PBS -e convert202110_err.txt
 
 source /home/reo000/myconda
-conda activate py39dc2
+conda activate py12MHW
 
-cd /home/reo000/MHW/MHW_Forecasts_New
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python convert6hdaily3.py 2021 10
 echo 'end'

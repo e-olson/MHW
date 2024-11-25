@@ -9,6 +9,6 @@
 source /home/reo000/myconda
 conda activate py12MHW
 
-cd /home/reo000/MHW/MHW_Forecasts_New
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py anom_bylead 1
 echo 'end'

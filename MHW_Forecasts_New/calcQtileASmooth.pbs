@@ -10,6 +10,6 @@
 source /home/reo000/myconda
 conda activate py12MHW
 
-cd /home/reo000/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py calc_quantile_detr_A $PBS_ARRAY_INDEX 1
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py calc_quantile_CanESM $PBS_ARRAY_INDEX 1
 echo 'end'

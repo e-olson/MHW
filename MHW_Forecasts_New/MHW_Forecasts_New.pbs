@@ -7,7 +7,8 @@
 echo 'lead:'
 echo $il
 source /home/reo000/myconda
-conda activate py39dc2
-cd /home/reo000/MHW/MHW_Forecasts_New
+conda activate py12MHW
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_Forecasts_New.py $il
 echo 'done'
