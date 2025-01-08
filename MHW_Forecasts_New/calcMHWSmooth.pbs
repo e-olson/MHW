@@ -12,5 +12,5 @@ conda activate py12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py MHW_calc $PBS_ARRAY_INDEX 1 qt1
-python MHW_daily_calcs.py MHW_calc $PBS_ARRAY_INDEX 1 qt2
+#python MHW_daily_calcs.py MHW_calc $PBS_ARRAY_INDEX 1 qt2
 echo 'end'

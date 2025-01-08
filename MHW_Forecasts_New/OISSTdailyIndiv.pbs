@@ -9,7 +9,7 @@
 
 
 source /home/reo000/myconda
-conda activate pyqwMHW
+conda activate py12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py IndivCalcs 

@@ -1,0 +1,15 @@
+## MHW_daily_calcs.py
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=12GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N MHWO
+#PBS -o MHWO_out.txt
+#PBS -e MHWO_err.txt
+
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py MHW_calc_OISST
+echo 'end'

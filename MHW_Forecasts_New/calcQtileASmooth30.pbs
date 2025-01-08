@@ -1,0 +1,15 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=24GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N qt30S
+#PBS -o qt30S^array_index^_out.txt
+#PBS -e qt30S^array_index^_err.txt
+#PBS -J 0-42
+
+source /home/reo000/myconda
+conda activate py39dc3
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py calc_quantile_CanESM30 $PBS_ARRAY_INDEX 1
+echo 'end'

@@ -56,12 +56,14 @@ def fnameCanESMAnomByLeadNoDetr(mdir, climyfirst, climylast, ilead, istartlat,  
 #fnameCanESMAnomDetrByLead=lambda mdir, climyfirst, climylast, ilead, istartlat: \
 #       f"{mdir}/byLeadDetr/anomDetrByLead_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
 #       f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+# lineary fit:
 def fnameCanESMDetrFitByLead(mdir, climyfirst, climylast, ilead, istartlat, smoothClim=False,meth=None,win=1):
     sourcedesig = f'_ClimS{smoothmethod}{window}' if smoothClim else ''
     subdir='byLeadDetr'
     #subdir='byLeadDetrIndiv2' if sourcedesig=='' else 'byLeadDetr'
     return f"{mdir}/{subdir}/fitDetrByLead{sourcedesig}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
+# smoothed linear fit:
 fnameCanESMDetrFitByLeadS=lambda mdir, climyfirst, climylast, ilead, istartlat, meth, win, sourcedesig='': \
        f"{mdir}/byLeadDetr/fitDetrByLead{sourcedesig}_smoothed{meth}{win}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
@@ -72,7 +74,10 @@ def fnameCanESMAnomDetrByLead(mdir, climyfirst, climylast, ilead, istartlat, smo
     return f"{mdir}/{subdir}/anomDetrByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
        f"L{ilead:03}_j{istartlat:03}_ocean_1d_surface_tso.nc"
 def fnameCanESMAnomQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=False, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0): 
-    subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
+    if detrend: 
+        subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
+    else:
+        subdir='byLead' if (smoothClim or smoothTrend) else 'byLeadIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
@@ -80,8 +85,11 @@ def fnameCanESMAnomQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, detr
     detrstr=f"Detr" if detrend else ""
     return f"{mdir}/{subdir}/qtile{detrstr}ByLead{strSClim}{strSTrend}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"L{ilead:03}{strdelt}_j{istartlat:03}_q{qstr}_ocean_1d_surface_tso.nc"
-def fnameCanESMMHW(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=False, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0,qtvar='qt1'): 
-    subdir='byLeadDetr' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2'
+def fnameCanESMMHW(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=False, smoothClim=False,smoothTrend=False,meth=None,win=1,delt=0,qtvar='qt1'):
+    if detrend: 
+        subdir='byLeadDetrMHW' if (smoothClim or smoothTrend) else 'byLeadDetrIndiv2MHW'
+    else:
+        subdir='byLeadMHW' if (smoothClim or smoothTrend) else 'byLeadIndiv2MHW'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
@@ -112,6 +120,19 @@ def fnameOISSTQTile(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1,d
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
     return f"{workdir}/OISST/oisst_qtile{'_detr' if detr else ''}{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}_q{qstr}{strdelt}-avhrr-v02r01.regridded1x1g2.daily.j{istartlat}.nc"
+def fnameOISSTMHW(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1, detr=True, delt=0,qtvar='qt1'):
+    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
+    strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
+    qstr='{:.2f}'.format(qt).replace('.','_')
+    qvstr='_'+qtvar
+    return f"{workdir}/OISST/oisst_MHW_{'_detr' if detr else ''}{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}_q{qstr}{strdelt}-avhrr-v02r01.regridded1x1g2.daily.j{istartlat}{qvstr}.nc"
+def fnameSEDI_OISST_CanESM_daily(lead,climyrs, smoothClim, meth, win, detr, qt, delt, qtvar, jj):
+    strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
+    strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
+    detrstr='_detr' if detr else ''
+    qstr='_{:.2f}'.format(qt).replace('.','_')
+    qvstr='_'+qtvar
+    return f"{workdir}/stats/SEDI_OISST_CanESM_daily_L{lead:03}_C{climyrs[0]:04}_{climyrs[-1]:04}{strSClim}{detrstr}{qstr}{strdelt}_j{jj:03}{qvstr}.nc"
     
 def mkdirs(fsave):
     saveloc=os.path.dirname(fsave)
@@ -407,7 +428,51 @@ def anom_bylead_detr(climyrs,ilead,jj,smoothedClim=False,smoothedTrend=False,smo
     return
 
 def calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
-    # version 1: 10 day windows in lead time
+     # version 1: 10 day windows in lead time
+     lmax=215
+     def getind(i0):
+         if i0>=1 and i0<=10:
+             return [i0-1,i0,i0+1]
+         elif i0==0:
+             return [11,0,1]
+         elif i0==11:
+             return [10,11,0]
+     #def leadbounds(l0,lmax,delt):
+     #    i0=min(max(l0-delt,0),lmax-(2*delt+1))
+     #    return i0, i0+2*delt+1
+     def leadbounds(l0,lmax,delt):
+         return max(0,l0-delt), min(lmax,l0+delt+1)
+     if detr:
+         flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0],climyrs[-1],il,jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) \
+                 for il in range(*leadbounds(ilead,215,delt))]
+     else:
+         flist=[fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,meth=smoothmethod,win=window) \
+                 for il in range(*leadbounds(ilead,215,delt))]
+     print(flist)
+     fqout=fnameCanESMAnomQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, detr, 
+                                smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
+     ff=xr.open_mfdataset(flist,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
+     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
+     sh=fc.shape
+     ql1=np.nan*np.ones((12,sh[-2],sh[-1]))
+     ql2=np.nan*np.ones((12,sh[-2],sh[-1]))
+     for ii in range(0,12):
+         pool1=fc.isel(month=ii).values.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5]))
+         ql1[ii,...]=np.nanquantile(pool1,qtile,axis=0)
+         pool2=fc.sel(month=getind(ii)).values.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5]))
+         ql2[ii,...]=np.nanquantile(pool2,qtile,axis=0)
+     print(fqout)
+     dsqt=xr.Dataset(data_vars={'qt1':(['month','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
+                                'qt2':(['month','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
+                    coords={'month':np.arange(0,12),
+                            'lat':ff.lat,
+                            'lon':ff.lon})
+     dsqt.to_netcdf(fqout,mode='w')
+     del dsqt; del fc;
+     ff.close()
+     return
+
+def calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
     lmax=215
     def getind(i0):
         if i0>=1 and i0<=10:
@@ -416,9 +481,6 @@ def calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
             return [11,0,1]
         elif i0==11:
             return [10,11,0]
-    #def leadbounds(l0,lmax,delt):
-    #    i0=min(max(l0-delt,0),lmax-(2*delt+1))
-    #    return i0, i0+2*delt+1
     def leadbounds(l0,lmax,delt):
         return max(0,l0-delt), min(lmax,l0+delt+1)
     if detr:
@@ -427,19 +489,21 @@ def calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
     else:
         flist=[fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,meth=smoothmethod,win=window) \
                 for il in range(*leadbounds(ilead,215,delt))]
-    print(flist)
     fqout=fnameCanESMAnomQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, detr, 
                                smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
+    if os.path.exists(fqout): return
+    print(flist)
     ff=xr.open_mfdataset(flist,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
+    fc=fc.chunk({'lat':10,'lon':10})
     sh=fc.shape
     ql1=np.nan*np.ones((12,sh[-2],sh[-1]))
     ql2=np.nan*np.ones((12,sh[-2],sh[-1]))
     for ii in range(0,12):
-        pool1=fc.isel(month=ii).values.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5]))
-        ql1[ii,...]=np.nanquantile(pool1,qtile,axis=0)
-        pool2=fc.sel(month=getind(ii)).values.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5]))
-        ql2[ii,...]=np.nanquantile(pool2,qtile,axis=0)
+        pool1=fc.isel(month=ii).data.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
+        ql1[ii,...]=da.apply_along_axis(np.quantile,0,pool1,qtile).compute()
+        pool2=fc.sel(month=getind(ii)).data.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
+        ql2[ii,...]=da.apply_along_axis(np.quantile,0,pool2,qtile).compute()
     print(fqout)
     dsqt=xr.Dataset(data_vars={'qt1':(['month','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
                                'qt2':(['month','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
@@ -447,8 +511,51 @@ def calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smo
                            'lat':ff.lat,
                            'lon':ff.lon})
     dsqt.to_netcdf(fqout,mode='w')
-    del dsqt; del fc;
+    del dsqt; del fc; del ql1; del ql2; del pool1; del pool2;
     ff.close()
+    return
+def calc_quantile_CanESMDask(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0):
+    lmax=215
+    def getind(i0):
+        if i0>=1 and i0<=10:
+            return [i0-1,i0,i0+1]
+        elif i0==0:
+            return [11,0,1]
+        elif i0==11:
+            return [10,11,0]
+    def leadbounds(l0,lmax,delt):
+        return max(0,l0-delt), min(lmax,l0+delt+1)
+    if detr:
+        flist=[fnameCanESMAnomDetrByLead(workdir, climyrs[0],climyrs[-1],il,jj,smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window) \
+                for il in range(*leadbounds(ilead,215,delt))]
+    else:
+        flist=[fnameCanESMAnomByLeadNoDetr(workdir, climyrs[0], climyrs[-1], il, jj,smoothClim=smoothedClim,meth=smoothmethod,win=window) \
+                for il in range(*leadbounds(ilead,215,delt))]
+    fqout=fnameCanESMAnomQtile(workdir, climyrs[0], climyrs[-1], ilead, jj, qtile, detr, 
+                               smoothClim=smoothedClim,smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
+    if os.path.exists(fqout): return
+    print(flist)
+    with LocalCluster(n_workers=6,threads_per_worker=1) as cluster, Client(cluster) as client:
+        ff=xr.open_mfdataset(flist,combine='nested',concat_dim=['leadtime'],parallel=True,decode_times=False)
+        fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month'))
+        fc=fc.chunk({'lat':10,'lon':10})
+        sh=fc.shape
+        ql1=np.nan*np.ones((12,sh[-2],sh[-1]))
+        ql2=np.nan*np.ones((12,sh[-2],sh[-1]))
+        for ii in range(0,12):
+            pool1=fc.isel(month=ii).data.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
+            ql1[ii,...]=da.apply_along_axis(np.quantile,0,pool1,qtile).compute()
+            pool2=fc.sel(month=getind(ii)).data.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
+            ql2[ii,...]=da.apply_along_axis(np.quantile,0,pool2,qtile).compute()
+        print(fqout)
+        dsqt=xr.Dataset(data_vars={'qt1':(['month','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
+                                   'qt2':(['month','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
+                       coords={'month':np.arange(0,12),
+                               'lat':ff.lat,
+                               'lon':ff.lon})
+        dsqt.to_netcdf(fqout,mode='w')
+        del dsqt; del fc; del ql1; del ql2; del pool1; del pool2;
+        ff.close()
     return
 
 def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=False,smoothmethod=None,window=1,delt=0,qtvar='qt1'):
@@ -460,6 +567,8 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=F
                                 smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
     fMHW=fnameCanESMMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,detr,smoothClim=smoothedClim,
                                 smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt,qtvar=qtvar)
+    print(fMHW)
+    if os.path.exists(fMHW): return
     ff=xr.open_dataset(fanom,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month')).values
     sh=fc.shape
@@ -666,7 +775,7 @@ def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,wi
         pool2=vals[ix2,:,:]
         ql2[ii-1,...]=np.nanquantile(pool2,qtile,axis=0)
     fqout = fnameOISSTQTile(climyrs, jj, qtile, smoothClim, meth, win,detr,delt)
-    print(fqout)
+    print(fqout,flush=True)
     dsqt=xr.Dataset(data_vars={'qt1':(['yd','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),
                                'qt2':(['yd','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
                    coords={'yd':np.arange(1,366),
@@ -677,9 +786,79 @@ def calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,wi
     ff.close()
     return
 
-#def process_daily_OISST():
-#    
-#    return
+def MHW_calc_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,win=1,delt=0,qtvar='qt1'):
+    if detr:
+        flist=[fnameOISSTAnomDetr([ylimlistobs[0][0],ylimlistobs[-1][-1]],climyrs, jj, smoothClim, meth, win),]
+    else:
+        flist=[fnameOISSTAnom(yrlims, climyrs, jj, smoothClim, meth, win) for yrlims in ylimlistobs]
+    print(flist)
+    fanom=xr.open_mfdataset(flist,parallel=True,decode_times=False)
+    fqtile= fnameOISSTQTile(climyrs, jj, qtile, smoothClim, meth, win,detr,delt)
+    fMHW = fnameOISSTMHW(climyrs, jj, qtile, smoothClim, meth, win,detr,delt,qtvar)
+    # real data has leap years, so coarsen won't work; need to account for 366 day years as well
+    tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in fanom.time.values])
+    yd=[yd365(el) for el in tdt]
+    fq=xr.open_dataset(fqtile,decode_times=False)
+    qt2=fq[qtvar].sel(yd=yd)
+    MHW=np.ma.masked_where(np.logical_or(np.isnan(fanom['sst_an'].values),np.isnan(fanom['sst_an'].values)),
+                       np.where(fanom['sst_an'].values>qt2.values,1,0))
+    dsMHW=xr.Dataset(data_vars={'isMHW':(['time','lat','lon'],MHW),},
+                    coords={'time':fanom.time,'lat':fanom.lat,'lon':fanom.lon})
+    mkdirs(fMHW)
+    dsMHW.to_netcdf(fMHW,mode='w')
+    del dsMHW; del MHW; del qt2; 
+    fanom.close(); fq.close();
+    return
+
+def calc_SEDI(mhwfor,mhwobs):
+    # dim 0 must be time
+    # mhwfor has extra dim at axis 1: ensemble member
+    M=np.shape(mhwfor)[1]
+    N_pos=np.sum(mhwfor,axis=1)
+    N_neg=np.sum((mhwfor==0).astype(float),axis=1)
+    TP=np.where(mhwobs==1,N_pos,0).sum(axis=0)
+    TN=np.where(mhwobs==0,N_neg,0).sum(axis=0)
+    FP=np.where(mhwobs==0,N_pos,0).sum(axis=0)
+    FN=np.where(mhwobs==1,N_neg,0).sum(axis=0)
+    # calculate SEDI, summed over time
+    Nobs_pos=np.sum(mhwobs,axis=0)
+    Nobs_neg=np.sum(1-mhwobs,axis=0)
+    F=FP/(Nobs_neg*M)
+    H=TP/(Nobs_pos*M)
+    SEDI=(np.log(F)-np.log(H)-np.log(1-F)+np.log(1-H))/(np.log(F)+np.log(H)+np.log(1-F)+np.log(1-H))
+    lmask=np.logical_or(np.sum(mhwfor[:,0,:,:],axis=0)==0,np.sum(mhwobs,axis=0)==0)
+    return SEDI,lmask,TP,TN,FP,FN
+
+class compstats:
+    def __init__(self,forfile,obsfile,leaddays):
+        self.forfile=forfile
+        self.obsfile=obsfile
+        self.ffor=xr.open_dataset(forfile)
+        self.fobs=xr.open_dataset(obsfile)
+        tsel=self.ffor.reftime.values+np.timedelta64(leaddays,'D')
+        tsel=tsel[tsel<self.fobs.time.values[-1]]
+        self.mhwfor=self.ffor['isMHW'].isel(reftime=slice(0,len(tsel))).data
+        self.mhwobs=self.fobs['isMHW'].sel(time=tsel,method='nearest',tolerance=np.timedelta64(12,'h')).data
+    def calcSEDI(self):
+        self.SEDI,self.lmask,self.TP,self.TN,self.FP,self.FN = calc_SEDI(self.mhwfor,self.mhwobs)
+    def saveSEDI(self,filename):
+        dsout=xr.Dataset(data_vars={'SEDI':(['lat','lon'],self.SEDI),
+                                    'lmask':(['lat','lon'],self.lmask),
+                                    'TP':(['lat','lon'],self.TP),
+                                    'FP':(['lat','lon'],self.FP),
+                                    'TN':(['lat','lon'],self.TN),
+                                    'FN':(['lat','lon'],self.FN),},
+                         coords={'lat':self.ffor.lat,'lon':self.ffor.lon},
+                         attrs={'forecast file':self.forfile,
+                                'obs file':self.obsfile})
+        dsout.to_netcdf(filename,mode='w')
+    def closefiles(self):
+        self.ffor.close()
+        self.fobs.close()
+    def __repr__(self):
+        xx=dir(self)
+        xx=[el for el in xx if not el.startswith('__')]
+        return 'compstats: '+' '.join(xx)
 
 if __name__=="__main__":
     # argument options:
@@ -758,8 +937,54 @@ if __name__=="__main__":
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
         opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
         print(ind,opt,flush=True)
+        for detr in (False,):#True, False):
+            for delt in (30,):#,30): #0,5,10,15,30
+                print(f"detr:{detr}, delt:{delt}",flush=True)
+                if opt==0: # no smoothing
+                    smoothedClim=False
+                    smoothedTrend=False
+                    smoothmethod=None
+                    window=0
+                elif opt==1: # all smoothing
+                    smoothedClim=True
+                    smoothedTrend=True if detr else False
+                    smoothmethod=smoothmethod
+                    window=windowhalfwid
+                for ilead in range(ind*5,(ind+1)*5):
+                    print(f"ilead:{ilead}",flush=True)
+                    for jj in range(0,180,60):
+                        print(f"jj:{jj}",flush=True)
+                        calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                                                 smoothmethod,window,delt)
+    elif funx=='calc_quantile_CanESMDask':
+        ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
+        opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
+        print(ind,opt,flush=True)
+        for detr in (False,):#True, False):
+            for delt in (30,):#,30): #0,5,10,15,30
+                print(f"detr:{detr}, delt:{delt}",flush=True)
+                if opt==0: # no smoothing
+                    smoothedClim=False
+                    smoothedTrend=False
+                    smoothmethod=None
+                    window=0
+                elif opt==1: # all smoothing
+                    smoothedClim=True
+                    smoothedTrend=True if detr else False
+                    smoothmethod=smoothmethod
+                    window=windowhalfwid
+                for ilead in range(ind*5,(ind+1)*5):
+                    print(f"ilead:{ilead}",flush=True)
+                    for jj in range(0,180,60):
+                        print(f"jj:{jj}",flush=True)
+                        calc_quantile_CanESMDask(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                                                 smoothmethod,window,delt)
+    elif funx=='calc_quantile_CanESM30':
+        ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
+        opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
+        print(ind,opt,flush=True)
         for detr in (True, False):
-            for delt in (0,5,10,30):
+            for delt in (0,15,30,): #0,5,
                 print(f"detr:{detr}, delt:{delt}",flush=True)
                 if opt==0: # no smoothing
                     smoothedClim=False
@@ -772,29 +997,31 @@ if __name__=="__main__":
                     smoothmethod=smoothmethod
                     window=windowhalfwid
                 for ilead in range(ind*5,(ind+1)*5):
+                    print(f"ilead:{ilead}",flush=True)
                     for jj in range(0,180,60):
-                        calc_quantile_CanESM(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                        print(f"jj:{jj}",flush=True)
+                        calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
                                                  smoothmethod,window,delt)
     elif funx=='MHW_calc':
         ind=int(sys.argv[2]) # index, 0 to 42
-        opt=int(sys.argv[3]) # numer referencing option set
+        opt=int(sys.argv[3]) # number referencing option set
         qtvarname=sys.argv[4] # qt1 or qt2; qt1 is 1 month, qt2 is 3 month (at same lead)
+        detr=False
+        delt=0
         if opt==0: # no smoothing
             smoothedClim=False
             smoothedTrend=False
             smoothmethod=None
             window=0
-            delt=0
         elif opt==1: # all smoothing
             smoothedClim=True
-            smoothedTrend=True
+            smoothedTrend=True if detr else False
             smoothmethod=smoothmethod
             window=windowhalfwid
-            delt=5
         for ilead in range(ind*5,(ind+1)*5):
             for jj in range(0,180,60):
                 print(f'start {ilead},{jj},{qtile}')
-                MHW_calc(climyrs,ilead,jj,qtile,True,smoothedClim,smoothedTrend,
+                MHW_calc(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
                                          smoothmethod,window,delt,qtvarname)
     #elif funx=='MHW_calc':  #old
     #    ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
@@ -825,17 +1052,52 @@ if __name__=="__main__":
         OISST_anom_detr(climyrs,smoothedClim, smoothmethod, windowhalfwid)
     elif funx=='calc_quantile_OISST':
         smoothedClim=True
-        for delt in (5,10,15,30):
+        detr=False # True
+        for delt in (30,): #(5,10,15,
+            print(f"delt={delt}",flush=True)
             for jj in range(0,180,60):
-                calc_quantile_OISST(climyrs,jj,qtile,detr=True,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
+                print(f"jj={jj}",flush=True)
+                calc_quantile_OISST(climyrs,jj,qtile,detr=detr,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,delt=delt)
+    elif funx=='MHW_calc_OISST':
+        smoothedClim=True
+        qtvar='qt1'
+        for delt in (15,30):
+            for detr in (True,): #False):
+                for jj in range(0,180,60):
+                    MHW_calc_OISST(climyrs,jj,qtile,detr,smoothClim=smoothedClim,meth=smoothmethod,win=windowhalfwid,
+                                    delt=delt,qtvar=qtvar)
     elif funx=='IndivCalcs':
-        # anomalies
-        for yrlims in ylimlistobs:
-            OISST_anom(yrlims,climyrs)
-        print(f'anom saved yrlims:{yrlims}')
-        # remove trend
-        OISST_anom_detr(climyrs)
+        ## anomalies
+        #for yrlims in ylimlistobs:
+        #    OISST_anom(yrlims,climyrs)
+        #print(f'anom saved yrlims:{yrlims}')
+        ## remove trend
+        #OISST_anom_detr(climyrs)
         # quantiles
-        for jj in range(0,180,60):
-            calc_quantile_OISST(climyrs,jj,qtile,detr=True)
+        for delt in (0,30):
+            for jj in range(0,180,60):
+                calc_quantile_OISST(climyrs,jj,qtile,detr=True,delt=delt)
+                MHW_calc_OISST(climyrs,jj,qtile,detr=True,delt=delt)
+    elif funx=='saveSEDI':
+        ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
+        smoothedClim=False #True
+        win=0 #windowhalfwid
+        delt= 0 #15
+        qtvar='qt1'
+        for detr in (False,):# False):
+            smoothTrend=True if (smoothedClim and detr) else False
+            for ilead in range(ind*5,(ind+1)*5):
+                for jj in range(0,180,60):
+                    print(f'start {detr},{ilead},{jj},{qtile}',flush=True)
+                    pathobs=fnameOISSTMHW(climyrs,jj,qtile,smoothedClim,smoothmethod,win,detr,delt,qtvar)
+                    pathfor=fnameCanESMMHW(workdir,climyrs[0],climyrs[-1],ilead,jj,qtile,detr,smoothedClim,smoothTrend,smoothmethod,win,delt,qtvar)
+                    fout=fnameSEDI_OISST_CanESM_daily(ilead,climyrs, smoothedClim, smoothmethod, windowhalfwid, detr, qtile, delt, qtvar, jj)
+                    if os.path.exists(fout):
+                        pass
+                    else:
+                        iSEDI=compstats(pathfor,pathobs,ilead)
+                        iSEDI.calcSEDI()
+                        iSEDI.saveSEDI(fout)
+                        iSEDI.closefiles()
+                        print(fout,flush=True)
     print('Done')

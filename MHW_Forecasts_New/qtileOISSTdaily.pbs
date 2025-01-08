@@ -3,9 +3,9 @@
 #PBS -l mem=8GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
-#PBS -N qt
-#PBS -o qt_out.txt
-#PBS -e qt_err.txt
+#PBS -N qtO
+#PBS -o qtO_out.txt
+#PBS -e qtO_err.txt
 
 source /home/reo000/myconda
 conda activate py12MHW

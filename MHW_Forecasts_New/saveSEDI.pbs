@@ -1,0 +1,15 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=24GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N SEDI
+#PBS -o SEDI^array_index^_out.txt
+#PBS -e SEDI^array_index^_err.txt
+#PBS -J 0-42
+
+source /home/reo000/myconda
+conda activate py12MHW
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX
+echo 'end'
