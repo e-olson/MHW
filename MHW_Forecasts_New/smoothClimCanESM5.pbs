@@ -6,8 +6,8 @@
 #PBS -o sclim_out.txt
 #PBS -e sclim_err.txt
 
-source /home/reo000/myconda
-conda activate py12MHW
+source /home/reo000/startmamba
+mamba activate mpy12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py smoothClim_CanESM5 10

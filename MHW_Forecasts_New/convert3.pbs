@@ -6,8 +6,8 @@
 #PBS -o convert3_out.txt
 #PBS -e convert3_err.txt
 
-source /home/reo000/myconda
-conda activate py12MHW
+source /home/reo000/startmamba
+mamba activate mpy12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python convert6hdaily3.py

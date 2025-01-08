@@ -6,8 +6,8 @@
 #PBS -o smoothtr_out^array_index^.txt
 #PBS -e smoothtr_err^array_index^.txt
 #PBS -J 0-2
-source /home/reo000/myconda
-conda activate py12MHW
+source /home/reo000/startmamba
+mamba activate mpy12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py smoothTrend_CanESM5 $PBS_ARRAY_INDEX

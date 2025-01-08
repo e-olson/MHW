@@ -6,7 +6,7 @@
 #PBS -o convert201710_out.txt
 #PBS -e convert201710_err.txt
 
-source /home/reo000/myconda
+source /home/reo000/startmamba
 conda activate p12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New

@@ -7,7 +7,7 @@
 #PBS -e qt30S^array_index^_err.txt
 #PBS -J 0-42
 
-source /home/reo000/myconda
+source /home/reo000/startmamba
 conda activate py39dc3
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
