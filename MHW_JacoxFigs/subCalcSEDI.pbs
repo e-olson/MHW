@@ -11,8 +11,9 @@ echo $detr
 echo 'lead:'
 echo $il
 
-source /home/reo000/myconda
-conda activate py39dc2
-cd /home/reo000/MHW/MHW_JacoxFigs
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/MHW_JacoxFigs
 python SEDI_v3.py $modopt $detr $il
 echo 'done'

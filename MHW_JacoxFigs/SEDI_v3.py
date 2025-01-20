@@ -62,7 +62,7 @@ def calcSEDI_il(mods,is_detrend,years,il,save=True):
     Ms=np.unique(M0)
     if len(Ms)>1: raise Exception('check M')
     M=Ms[0]
-    mhwfor=ffor.is_mhw.data[:(-1*il),...]
+    mhwfor=ffor.is_mhw.data[:(-1*il),...] if il>0 else ffor.is_mhw.data
     mhwobs=fobs.is_mhw.data[il:,...]
     N_pos=np.sum(mhwfor,axis=1).compute()
     N_neg=np.sum((mhwfor==0).astype(float),axis=1).compute()
@@ -100,7 +100,7 @@ modict={'Jacox':['CanCM4i', 'COLA-RSMAS-CCSM4', 'GEM-NEMO', 'GFDL-SPEAR',
 if __name__=="__main__":
     # python SEDI-v3.py modopt is_detrend lead
     modopt=sys.argv[1] # option defining group of models to run; single model or dict key
-    is_detrend=bool(sys.argv[2]) # True or False or 1 or 0
+    is_detrend=bool(int(sys.argv[2])) # True or False or 1 or 0
     il=int(sys.argv[3]) # lead, 0-10
     if modopt in modict.keys():
         mods=modict[modopt]

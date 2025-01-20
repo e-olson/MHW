@@ -1,7 +1,0 @@
-/var/spool/pbs/mom_priv/jobs/459047529[36].ppp5pbs-001-ib.SC: line 10: /home/reo000/myconda: No such file or directory
-/var/spool/pbs/mom_priv/jobs/459047529[36].ppp5pbs-001-ib.SC: line 11: conda: command not found
-Traceback (most recent call last):
-  File "MHW_daily_calcs.py", line 3, in <module>
-    import xarray as xr
-ModuleNotFoundError: No module named 'xarray'
-cleaning up temporary directories

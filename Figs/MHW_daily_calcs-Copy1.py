@@ -502,14 +502,14 @@ def calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,s
     for ii in range(0,12):
         if delt<20:
             pool1=fc.isel(month=ii).data.reshape((sh[0]*sh[1]*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
-            ql1[ii,...]=da.apply_along_axis(np.nanquantile,0,pool1,qtile).compute()
+            ql1[ii,...]=da.apply_along_axis(np.quantile,0,pool1,qtile).compute()
             #pool2=fc.sel(month=getind(ii)).data.reshape((sh[0]*sh[1]*3*sh[3],sh[4],sh[5])).rechunk((-1,10,10))
             #ql2[ii,...]=da.apply_along_axis(np.quantile,0,pool2,qtile).compute()
         else:
             gr=20
             for ij in range(0,int(np.ceil(sh[-2]/gr))):
                 pool1=fc.isel(month=ii,lat=slice(ij*gr,(ij+1)*gr)).data.reshape((sh[0]*sh[1]*sh[3],gr,sh[5]))
-                ql1[ii,ij*gr:(ij+1)*gr,:]=da.apply_along_axis(np.nanquantile,0,pool1,qtile).compute()
+                ql1[ii,ij*gr:(ij+1)*gr,:]=da.apply_along_axis(np.quantile,0,pool1,qtile).compute()
     print(fqout,flush=True)
     dsqt=xr.Dataset(data_vars={'qt1':(['month','lat','lon'],ql1,{'long_name':f"{100*qtile}th percentile value"}),},
                                # 'qt2':(['month','lat','lon'],ql2,{'long_name':f"{100*qtile}th percentile value"}),},
@@ -530,7 +530,7 @@ def MHW_calc(climyrs,ilead,jj,qtile,detr=True,smoothedClim=False,smoothedTrend=F
                                 smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt)
     fMHW=fnameCanESMMHW(workdir, climyrs[0], climyrs[-1], ilead, jj,qtile,detr,smoothClim=smoothedClim,
                                 smoothTrend=smoothedTrend,meth=smoothmethod,win=window,delt=delt,qtvar=qtvar)
-    print(fMHW,flush=True)
+    print(fMHW)
     if os.path.exists(fMHW): return
     ff=xr.open_dataset(fanom,decode_times=False)
     fc=ff.sst_an.coarsen(reftime=12,boundary='pad').construct(reftime=('year','month')).values
@@ -758,7 +758,6 @@ def MHW_calc_OISST(climyrs,jj,qtile,detr=True,smoothClim=False,meth=None,win=1,d
     fanom=xr.open_mfdataset(flist,parallel=True,decode_times=False)
     fqtile= fnameOISSTQTile(climyrs, jj, qtile, smoothClim, meth, win,detr,delt)
     fMHW = fnameOISSTMHW(climyrs, jj, qtile, smoothClim, meth, win,detr,delt,qtvar)
-    print(fMHW,flush=True)
     # real data has leap years, so coarsen won't work; need to account for 366 day years as well
     tdt=np.array([dt.datetime(1978,1,1,12)+dt.timedelta(days=float(el)) for el in fanom.time.values])
     yd=[yd365(el) for el in tdt]
@@ -900,27 +899,49 @@ if __name__=="__main__":
     elif funx=='calc_quantile_CanESM':
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
         opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
-        det=int(sys.argv[4]) # 0 for no detrend, 1 for detrend
-        detr=True if det==1 else False
-        print(ind,opt,det,flush=True)
-        for delt in (15,):#,30): #0,5,10,15,30
-            print(f"detr:{detr}, delt:{delt}",flush=True)
-            if opt==0: # no smoothing
-                smoothedClim=False
-                smoothedTrend=False
-                smoothmethod=None
-                window=0
-            elif opt==1: # all smoothing
-                smoothedClim=True
-                smoothedTrend=True if detr else False
-                smoothmethod=smoothmethod
-                window=windowhalfwid
-            for ilead in range(ind*5,(ind+1)*5):
-                print(f"ilead:{ilead}",flush=True)
-                for jj in range(0,180,60):
-                    print(f"jj:{jj}",flush=True)
-                    calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
-                                             smoothmethod,window,delt)
+        print(ind,opt,flush=True)
+        for detr in (False,):#True, False):
+            for delt in (30,):#,30): #0,5,10,15,30
+                print(f"detr:{detr}, delt:{delt}",flush=True)
+                if opt==0: # no smoothing
+                    smoothedClim=False
+                    smoothedTrend=False
+                    smoothmethod=None
+                    window=0
+                elif opt==1: # all smoothing
+                    smoothedClim=True
+                    smoothedTrend=True if detr else False
+                    smoothmethod=smoothmethod
+                    window=windowhalfwid
+                for ilead in range(ind*5,(ind+1)*5):
+                    print(f"ilead:{ilead}",flush=True)
+                    for jj in range(0,180,60):
+                        print(f"jj:{jj}",flush=True)
+                        calc_quantile_CanESM30(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                                                 smoothmethod,window,delt)
+    elif funx=='calc_quantile_CanESMDask':
+        ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
+        opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
+        print(ind,opt,flush=True)
+        for detr in (False,):#True, False):
+            for delt in (30,):#,30): #0,5,10,15,30
+                print(f"detr:{detr}, delt:{delt}",flush=True)
+                if opt==0: # no smoothing
+                    smoothedClim=False
+                    smoothedTrend=False
+                    smoothmethod=None
+                    window=0
+                elif opt==1: # all smoothing
+                    smoothedClim=True
+                    smoothedTrend=True if detr else False
+                    smoothmethod=smoothmethod
+                    window=windowhalfwid
+                for ilead in range(ind*5,(ind+1)*5):
+                    print(f"ilead:{ilead}",flush=True)
+                    for jj in range(0,180,60):
+                        print(f"jj:{jj}",flush=True)
+                        calc_quantile_CanESMDask(climyrs,ilead,jj,qtile,detr,smoothedClim,smoothedTrend,
+                                                 smoothmethod,window,delt)
     elif funx=='calc_quantile_CanESM30':
         ind=int(sys.argv[2]) # argument should be index, currently in range of 0 to 42
         opt=int(sys.argv[3]) # 0 for no smoothing, 1 for all smoothing
@@ -950,7 +971,7 @@ if __name__=="__main__":
         qtvarname=sys.argv[4] # qt1 or qt2; qt1 is 1 month, qt2 is 3 month (at same lead)
         delt=int(sys.argv[5]) # delt
         if not delt in {0,5,10,15,30}: raise Exception('check delt')
-        detr=True
+        detr=False
         if opt==0: # no smoothing
             smoothedClim=False
             smoothedTrend=False
@@ -1017,8 +1038,8 @@ if __name__=="__main__":
         ## remove trend
         #OISST_anom_detr(climyrs)
         # quantiles
-        detr=True
-        for delt in (15,): #(0,30):
+        detr=False
+        for delt in (0,30):
             for jj in range(0,180,60):
                 calc_quantile_OISST(climyrs,jj,qtile,detr=detr,delt=delt)
                 MHW_calc_OISST(climyrs,jj,qtile,detr=detr,delt=delt)

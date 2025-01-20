@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=32GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N qtIndiv
+#PBS -o qtIndiv2_5_out.txt
+#PBS -e qtIndiv2_5_err.txt
+
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py calc_quantile_CanESM 5 0
+echo 'end'
