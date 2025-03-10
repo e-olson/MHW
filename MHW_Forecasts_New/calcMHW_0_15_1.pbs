@@ -1,0 +1,15 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=12GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N MHW_0_15_1
+#PBS -o MHW_0_15_1_out^array_index^.txt
+#PBS -e MHW_0_15_1_err^array_index^.txt
+#PBS -J 0-42
+
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_New
+python MHW_daily_calcs.py MHW_calc $PBS_ARRAY_INDEX 0 qt1 15 1
+echo 'end'

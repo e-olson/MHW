@@ -11,5 +11,8 @@ source /home/reo000/startmamba
 mamba activate mpy12MHW
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX
+python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX 0 15 0
+python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX 0 15 1
+python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX 1 15 0
+python MHW_daily_calcs.py saveSEDI $PBS_ARRAY_INDEX 1 15 1
 echo 'end'

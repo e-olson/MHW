@@ -4,3 +4,4 @@ core.*
 MHW_Forecasts_New/logs
 *out.txt
 *err.txt
+*.mp4
