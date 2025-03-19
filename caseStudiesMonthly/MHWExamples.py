@@ -260,11 +260,14 @@ def byleadcalcs(yy,region):
     Tthresh=.9
     lost=np.where(fice.ice>Athresh,1,0).sum(axis=0)
     imask=lost>(1-Tthresh)*np.shape(fice.ice)[0]
-    
+    lonind = lambda lon,tol=.1:int(np.argwhere((np.abs(fobs.lon.values-lon)<tol)|\
+                                       (np.abs(fobs.lon.values+360-lon)<tol)|\
+                                       (np.abs(fobs.lon.values-360-lon)<tol))[0][0])
+    latind = lambda lat,tol=.1:int(np.argwhere(np.abs(fobs.lat.values-lat)<tol)[0][0])
     if region=='NPac':
         # region 1
-        imin=np.argmin(np.abs(ffor[0].lon.values-(-150+360)))
-        jmin=np.argmin(np.abs(ffor[0].lat.values-45))
+        imin=lonind(-150)
+        jmin=latind(45)
         A1mask=~lm&~imask
         A1mask[:jmin,:]=0
         A1mask[:,:imin]=0
