@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=32GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N movieP
+#PBS -o movieP_out.txt
+#PBS -e movieP_err.txt
+
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/caseStudiesMonthly
+python MHWExamples.py make_movie_Pac
+echo 'end'

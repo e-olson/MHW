@@ -1,0 +1,15 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=6GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N MHWNPac
+#PBS -o logs/blNPac_out^array_index^.txt
+#PBS -e logs/blNPac_err^array_index^.txt
+#PBS -J 1991-2020
+
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/caseStudiesMonthly
+python MHWExamples.py byleadcalcsNPac $PBS_ARRAY_INDEX
+echo 'end'

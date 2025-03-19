@@ -1,0 +1,14 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=32GB
+#PBS -l walltime=06:00:00
+#PBS -S /bin/bash
+#PBS -N blc
+#PBS -o blc_out.txt
+#PBS -e blc_err.txt
+
+source /home/reo000/startmamba
+mamba activate mpy12MHW
+
+cd /home/reo000/projects/MHW/caseStudiesMonthly
+python MHWExamples.py byleadcalcs
+echo 'end'
