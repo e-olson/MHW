@@ -7,6 +7,9 @@ MHW_Forecasts_New/logs
 *err*.txt
 *out*.txt
 *.mp4
+*.png
+*.eps
+*.pdf
 *.nc
 */logs
 */figs

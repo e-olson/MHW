@@ -1,4 +1,4 @@
-## Run Brier_v3.py
+## Run SEDI_v3.py
 #PBS -l nodes=1:ppn=4
 #PBS -l mem=4GB
 #PBS -l walltime=06:00:00
@@ -10,9 +10,10 @@ echo 'detrend:'
 echo $detr
 echo 'lead:'
 echo $il
-echo `pwd`
+
 source /home/reo000/startmamba
-conda activate mpy312dc
+mamba activate mpy12MHW
+
 cd /home/reo000/projects/MHW/MHW_JacoxFigs
-python Brier.py $modopt $detr $il
+python SEDI_v3.py $modopt $detr $il
 echo 'done'
