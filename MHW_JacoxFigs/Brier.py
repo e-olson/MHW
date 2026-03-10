@@ -160,7 +160,7 @@ def calcBSS_il_ParF(mods,is_detrend,years,il,tag='PXGF',save=True):
                     'BrS':(['Y','X'],np.ma.masked_where(lmask,BrS)),
                     'BrSref':(['Y','X'],np.ma.masked_where(lmask,BrSref)),
                     'BSS':(['Y','X'],np.ma.masked_where(lmask,BSS))},
-                    coords=dict(X=ffor.X,Y=ffor.Y),)
+                    coords=dict(X=ffor.longitude,Y=ffor.latitude),)
         xout.to_netcdf(f_save,mode='w')
     ffor.close()
     return
@@ -274,7 +274,7 @@ def calcBSSPersist_il_ParF(mods,is_detrend,years,il,tag='PXGF',save=True):
                     'BrS':(['Y','X'],np.ma.masked_where(lmask,BrS)),
                     'BrSref':(['Y','X'],np.ma.masked_where(lmask,BrSref)),
                     'BSS':(['Y','X'],np.ma.masked_where(lmask,BSS))},
-                    coords=dict(X=ffor.X,Y=ffor.Y),)
+                    coords=dict(X=ffor.longitude,Y=ffor.latitude),)
         xout.to_netcdf(f_save,mode='w')
     ffor.close()
     return
