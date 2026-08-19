@@ -1,0 +1,16 @@
+#PBS -l nodes=1:ppn=5
+#PBS -l mem=60GB
+#PBS -l walltime=03:00:00
+#PBS -S /bin/bash
+#PBS -N qtS
+#PBS -o logs/qtS^array_index^_out.txt
+#PBS -e logs/qtS^array_index^_err.txt
+#PBS -J 0-8
+#PBS -r y
+
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+python MHW_daily_calcs.py calc_quantile_CanESM $PBS_ARRAY_INDEX
+echo 'end'

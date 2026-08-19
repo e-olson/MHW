@@ -1,16 +1,16 @@
 ## MHW_daily_calcs.py
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=12GB
+#PBS -l mem=16GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
-#PBS -N dclim
-#PBS -o detr_out.txt
-#PBS -e detr_err.txt
+#PBS -N detr
+#PBS -o logs/detr_out.txt
+#PBS -e logs/detr_err.txt
 
 
-source /home/reo000/startmamba
-mamba activate mpy12MHW
 
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py OISST_anom_detr
 echo 'end'

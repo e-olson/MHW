@@ -3,12 +3,15 @@
 #PBS -l mem=16GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
-#PBS -N dclim
-#PBS -o logs/dclim_out.txt
-#PBS -e logs/dclim_err.txt
+#PBS -N OAnom
+#PBS -o logs/OAnom_out^array_index^.txt
+#PBS -e logs/OAnom_err^array_index^.txt
+#PBS -J 0-3
+#PBS -r y
 
 source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
 source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
-cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py calc_OISST_clim
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+python MHW_daily_calcs.py OISST_anom $PBS_ARRAY_INDEX 
 echo 'end'

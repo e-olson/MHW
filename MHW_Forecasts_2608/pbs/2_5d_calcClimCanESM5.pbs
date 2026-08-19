@@ -1,14 +1,14 @@
-#PBS -l nodes=1:ppn=7
+#PBS -l nodes=1:ppn=5
 #PBS -l mem=30GB
 #PBS -l walltime=06:00:00
 #PBS -S /bin/bash
-#PBS -N sclim
-#PBS -o logs/sclim_out.txt
-#PBS -e logs/sclim_err.txt
+#PBS -N clim
+#PBS -o logs/clim_out.txt
+#PBS -e logs/clim_err.txt
 
 source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
 source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 
-cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py smoothClim_CanESM5
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+python MHW_daily_calcs.py calcClim_CanESM5
 echo 'end'

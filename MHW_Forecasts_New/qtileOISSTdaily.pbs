@@ -1,15 +1,16 @@
 ## MHW_daily_calcs.py
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=8GB
+#PBS -l mem=16GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
 #PBS -N qtO
-#PBS -o qtO_out.txt
-#PBS -e qtO_err.txt
+#PBS -o logs/qtO_out.txt
+#PBS -e logs/qtO_err.txt
 
-source /home/reo000/startmamba
-mamba activate mpy12MHW
 
+
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py calc_quantile_OISST
 echo 'end'

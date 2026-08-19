@@ -1,14 +1,16 @@
 #PBS -l nodes=1:ppn=7
-#PBS -l mem=30GB
+#PBS -l mem=60GB
 #PBS -l walltime=06:00:00
 #PBS -S /bin/bash
 #PBS -N anom
-#PBS -o logs/anom_out.txt
-#PBS -e logs/anom_err.txt
+#PBS -o logs/anom_^array_index^_out.txt
+#PBS -e logs/anom_^array_index^_err.txt
+#PBS -J 1-12
+#PBS -r y
 
 source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
 source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 
-cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py calcAnom_CanESM5
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+python MHW_daily_calcs.py calcAnom_CanESM5 $PBS_ARRAY_INDEX
 echo 'end'

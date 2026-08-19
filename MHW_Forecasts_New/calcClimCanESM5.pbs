@@ -3,11 +3,11 @@
 #PBS -l walltime=06:00:00
 #PBS -S /bin/bash
 #PBS -N clim
-#PBS -o clim_out.txt
-#PBS -e clim_err.txt
+#PBS -o logs/clim_out.txt
+#PBS -e logs/clim_err.txt
 
-source /home/reo000/startmamba
-mamba activate mpy12MHW
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py calcClim_CanESM5 1993 2023

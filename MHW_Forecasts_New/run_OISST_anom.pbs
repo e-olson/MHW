@@ -1,16 +1,16 @@
 ## MHW_daily_calcs.py
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=6GB
+#PBS -l mem=16GB
 #PBS -l walltime=03:00:00
 #PBS -S /bin/bash
 #PBS -N OISSTAnom
-#PBS -o OISSTAnom_out^array_index^.txt
-#PBS -e OISSTAnom_err^array_index^.txt
+#PBS -o logs/OISSTAnom_out^array_index^.txt
+#PBS -e logs/OISSTAnom_err^array_index^.txt
 #PBS -J 0-3
+#PBS -r y
 
-source /home/reo000/startmamba
-mamba activate mpy12MHW
-
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
 python MHW_daily_calcs.py OISST_anom $PBS_ARRAY_INDEX 
 echo 'end'

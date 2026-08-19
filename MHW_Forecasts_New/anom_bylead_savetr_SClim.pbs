@@ -3,13 +3,13 @@
 #PBS -l walltime=02:00:00
 #PBS -S /bin/bash
 #PBS -N trS
-#PBS -o detrS_out^array_index^.txt
-#PBS -e detrS_err^array_index^.txt
+#PBS -o logs/detrS_out^array_index^.txt
+#PBS -e logs/detrS_err^array_index^.txt
 #PBS -J 0-42
 
-source /home/reo000/startmamba
-mamba activate mpy12MHW
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 
 cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py anom_bylead_savetr $PBS_ARRAY_INDEX 1
+python MHW_daily_calcs.py anom_bylead_savetr $PBS_ARRAY_INDEX
 echo 'end'

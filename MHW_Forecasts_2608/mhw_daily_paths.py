@@ -14,7 +14,7 @@ fnameCanESM5d=lambda mdir, yyyy, mm, dd, hh: \
        f"{mdir}/joined/cwao_CanESM5.1p1bc-v20240611_hindcast_S{yyyy:04}{mm:02}{dd:02}{hh:02}_ocean_5d_surface_tso.nc"
 def fnameCanESMClim(mdir, climyfirst, climylast, mm, smoothClim=False,method=None,window=1,L=1):
     smstr=f'_smooth_{method}{window}' if smoothClim else ''
-    return f"{mdir}/clim/clim_{smstr}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
+    return f"{mdir}/clim/clim{smstr}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
             f"Mon{mm:02}_ocean_{L}d_surface_tso.nc"
 #fnameCanESMAnom=lambda mdir, climyfirst,climylast,lfirst, llast, mm: \
 #       f"{mdir}/anom/anom_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_SMon{mm:02}_"\
@@ -51,7 +51,7 @@ def fnameCanESMAnomByLead(mdir, climyfirst, climylast, ilead, istartlat,  smooth
 # lineary fit:
 def fnameCanESMDetrFitByLead(mdir, climyfirst, climylast, ilead, istartlat, smoothClim=False,smoothTrend=False,meth=None,win=1,L=1):
     sourcedesig = f'_ClimS{meth}{win}' if smoothClim else ''
-    trdesig = f'_smoothed{meth}{win}' if smoothClim else ''
+    trdesig = f'_smoothed{meth}{win}' if smoothTrend else ''
     subdir='byLeadDetr'
     #subdir='byLeadDetrIndiv2' if sourcedesig=='' else 'byLeadDetr'
     return f"{mdir}/{subdir}/fitDetrByLead{sourcedesig}{trdesig}_cwao_CanESM5.1p1bc-v20240611_hindcast_C{climyfirst:04}_{climylast:04}_"\
@@ -66,7 +66,7 @@ def fnameCanESMAnomQtile(mdir, climyfirst, climylast, ilead, istartlat, qt, detr
     else:
         subdir='byLead' if (smoothClim or smoothTrend) else 'byLeadIndiv2'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
-    strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
+    strSTrend=f'_TrS{meth}{win}' if smoothTrend else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
     detrstr=f"Detr" if detrend else ""
@@ -78,7 +78,7 @@ def fnameCanESMMHW(mdir, climyfirst, climylast, ilead, istartlat, qt, detrend=Fa
     else:
         subdir='byLeadMHW' if (smoothClim or smoothTrend) else 'byLeadIndiv2MHW'
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
-    strSTrend=f'_TrS{meth}{win}' if smoothClim else ''
+    strSTrend=f'_TrS{meth}{win}' if smoothTrend else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together
     qstr='{:.2f}'.format(qt).replace('.','_')
     detrstr=f"Detr" if detrend else ""
@@ -98,6 +98,9 @@ def fnameOISSTDailyClim(climyfirst, climylast,smoothedClim=False,meth=None,win=1
 def fnameOISSTAnom(yrlims, climyrs, istartlat, smoothClim=False, meth=None, win=1,L=1,detrended=False):
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     return f"{workdir[L]}/OISST/oisst_anom{'_detr' if detrended else ''}{strSClim}_C{climyrs[0]:04}_{climyrs[-1]:04}-avhrr-v02r01.regridded1x1g2.{'daily' if L==1 else str(L)+'day'}.{yrlims[0]}_{yrlims[-1]}_j{istartlat}.nc"
+def fnameOISSTDetrFit(climyrs, istartlat, smoothClim=False,meth=None,win=1,L=1):
+    sourcedesig = f'_ClimS{meth}{win}' if smoothClim else ''
+    return f"{workdir[L]}/OISST/fitDetr{sourcedesig}_oisst-avhrr-v02r01.regridded1x1g2.{'daily' if L==1 else str(L)+'d'}_C{climyrs[0]:04}_{climyrs[1]:04}.nc"
 def fnameOISSTQTile(climyrs, istartlat, qt, smoothClim=False, meth=None, win=1,detr=True,delt=0,L=1):
     strSClim=f'_ClimS{meth}{win}' if smoothClim else ''
     strdelt=f'_delt{delt}' # reflects number of lead time days to pool together

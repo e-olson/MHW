@@ -1,15 +1,16 @@
 #PBS -l nodes=1:ppn=1
 #PBS -l mem=6GB
-#PBS -l walltime=03:00:00
+#PBS -l walltime=02:00:00
 #PBS -S /bin/bash
-#PBS -N anombylead
-#PBS -o logs/detr_out^array_index^.txt
-#PBS -e logs/detr_err^array_index^.txt
+#PBS -N trS
+#PBS -o logs/detrS_out^array_index^.txt
+#PBS -e logs/detrS_err^array_index^.txt
 #PBS -J 0-42
 #PBS -r y
 
 source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
 source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
-cd /home/reo000/projects/MHW/MHW_Forecasts_New
-python MHW_daily_calcs.py anom_bylead_detr $PBS_ARRAY_INDEX
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+python MHW_daily_calcs.py anom_bylead_savetr $PBS_ARRAY_INDEX
 echo 'end'

@@ -1,0 +1,20 @@
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=12GB
+#PBS -l walltime=04:00:00
+#PBS -S /bin/bash
+#PBS -N c5d
+#PBS -o logs/c5d_^array_index^_out.txt
+#PBS -e logs/c5d_^array_index^_err.txt
+#PBS -J 1993-2024%5
+#PBS -r y
+
+source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
+source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
+
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
+# 1993-2024
+#for yy in {2015..2024}; do
+yy=$PBS_ARRAY_INDEX
+python MHW_daily_calcs.py fconvert_CanESM_1d5d $yy
+#done
+echo 'end'

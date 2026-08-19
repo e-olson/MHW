@@ -9,6 +9,6 @@
 source /home/scrd102/cccma_libs/cccma/latest/config/computational_environment
 source /fs/homeu3/eccc/crd/ords/cccma/reo000/uvenvs/py312u3/bin/activate
 
-cd /home/reo000/projects/MHW/MHW_Forecasts_New
+cd /home/reo000/projects/MHW/MHW_Forecasts_2608
 python MHW_daily_calcs.py smoothClim_CanESM5
 echo 'end'
